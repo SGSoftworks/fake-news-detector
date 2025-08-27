@@ -750,19 +750,18 @@ const generateDetailedExplanation = (
     verificationResults.relatedArticles &&
     verificationResults.relatedArticles.length > 0
   )
-
-  // Recomendaciones
-  if (
-    verificationResults &&
-    verificationResults.recommendations &&
-    verificationResults.recommendations.length > 0
-  ) {
-    explanation += `💡 RECOMENDACIONES:\n`;
-    verificationResults.recommendations.forEach((rec, index) => {
-      explanation += `${index + 1}. ${rec}\n`;
-    });
-    explanation += "\n";
-  }
+    if (
+      verificationResults &&
+      verificationResults.recommendations &&
+      verificationResults.recommendations.length > 0
+    ) {
+      // Recomendaciones
+      explanation += `💡 RECOMENDACIONES:\n`;
+      verificationResults.recommendations.forEach((rec, index) => {
+        explanation += `${index + 1}. ${rec}\n`;
+      });
+      explanation += "\n";
+    }
 
   // Explicación final mejorada
   if (isFake) {
