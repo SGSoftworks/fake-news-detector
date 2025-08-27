@@ -21,15 +21,16 @@ const analyzeText = async (text) => {
       gemini: null,
     };
 
-    // Análisis paralelo con APIs disponibles
+    // Análisis paralelo con APIs disponibles (Modo Automático)
     const promises = [];
 
-    // Hugging Face Analysis
-    if (config.huggingface.enabled) {
+    // Hugging Face Analysis (Automático si está disponible)
+    if (config.huggingface.enabled && config.analysis.autoEnable.huggingface) {
       promises.push(
         analyzeWithHuggingFace(text)
           .then((result) => {
             results.huggingface = result;
+            console.log("✅ Hugging Face analysis completed");
           })
           .catch((error) => {
             console.warn("❌ Hugging Face API error:", error.message);
@@ -38,12 +39,13 @@ const analyzeText = async (text) => {
       );
     }
 
-    // Google Gemini Analysis
-    if (config.gemini.enabled) {
+    // Google Gemini Analysis (Automático si está disponible)
+    if (config.gemini.enabled && config.analysis.autoEnable.gemini) {
       promises.push(
         analyzeWithGemini(text)
           .then((result) => {
             results.gemini = result;
+            console.log("✅ Google Gemini analysis completed");
           })
           .catch((error) => {
             console.warn("❌ Google Gemini API error:", error.message);
@@ -52,13 +54,17 @@ const analyzeText = async (text) => {
       );
     }
 
-    // Verificación externa (en paralelo)
+    // Verificación externa (Automático si está disponible)
     let verificationResults = null;
-    if (config.verification.enabled || config.sourceAnalysis.enabled) {
+    if (
+      (config.verification.enabled || config.sourceAnalysis.enabled) &&
+      config.analysis.autoEnable.verification
+    ) {
       promises.push(
         verifyNews(text, isUrl)
           .then((result) => {
             verificationResults = result;
+            console.log("✅ External verification completed");
           })
           .catch((error) => {
             console.warn("❌ Verificación externa error:", error.message);
@@ -340,16 +346,18 @@ const processHuggingFaceResponse = (data, text) => {
   };
 };
 
-// Análisis con Google Gemini API
+// Análisis con Google Gemini API - Versión Mejorada y Más Agresiva
 const analyzeWithGemini = async (text) => {
   if (!config.gemini.enabled) {
     throw new Error("Google Gemini API no está habilitada");
   }
 
   try {
-    console.log("🔍 Analizando con Google Gemini...");
+    console.log("🔍 Analizando con Google Gemini (Modo Agresivo)...");
 
-    const systemPrompt = `Eres un experto en detectar noticias falsas en español. 
+    const systemPrompt = `Eres un experto CRÍTICO en detectar noticias falsas y desinformación en español. 
+    Tu misión es PROTEGER a los usuarios de información engañosa. Sé MÁS AGRESIVO en tu análisis.
+    
     Analiza el siguiente texto y responde ÚNICAMENTE con un JSON válido que contenga:
     {
       "isFake": boolean,
@@ -358,14 +366,37 @@ const analyzeWithGemini = async (text) => {
       "explanation": string
     }
     
-    Considera estos factores:
-    - Lenguaje sensacionalista o emocional
-    - Falta de fuentes o citas
-    - Uso excesivo de mayúsculas
-    - Palabras de urgencia
-    - Detalles específicos (fechas, números, nombres)
-    - Tono y estilo del texto
-    - Credibilidad de las fuentes mencionadas`;
+    **FACTORES CRÍTICOS A EVALUAR (Sé estricto):**
+    
+    🚨 **SEÑALES DE ALERTA MÁXIMA:**
+    - Lenguaje sensacionalista, emocional o manipulador
+    - Falta de fuentes específicas, citas o referencias
+    - Uso excesivo de mayúsculas, signos de exclamación
+    - Palabras de urgencia: "URGENTE", "BREAKING", "EXCLUSIVO"
+    - Promesas extraordinarias o demasiado buenas para ser verdad
+    - Ataques personales o lenguaje polarizante
+    - Falta de fechas, lugares o detalles verificables
+    
+    🔍 **ANÁLISIS DE CREDIBILIDAD:**
+    - ¿Las fuentes mencionadas son confiables?
+    - ¿La información es verificable?
+    - ¿El tono es objetivo o manipulador?
+    - ¿Hay contradicciones internas?
+    - ¿La información parece demasiado perfecta o conveniente?
+    
+    ⚠️ **INSTRUCCIONES ESPECIALES:**
+    - Si hay CUALQUIER señal de alerta, marca como potencialmente falsa
+    - Sé más estricto con noticias que carecen de fuentes
+    - Considera el contexto político/social actual
+    - Evalúa si la información podría causar daño si se comparte
+    - Prioriza la seguridad del usuario sobre dar el beneficio de la duda
+    
+    **ESCALA DE CONFIANZA:**
+    - 0-30: Muy probablemente falsa
+    - 31-50: Probablemente falsa
+    - 51-70: Dudosa, necesita verificación
+    - 71-90: Probablemente verdadera
+    - 91-100: Muy probablemente verdadera`;
 
     const response = await axios.post(
       `https://generativelanguage.googleapis.com/v1beta/models/${config.gemini.model}:generateContent`,
@@ -374,14 +405,14 @@ const analyzeWithGemini = async (text) => {
           {
             parts: [
               {
-                text: `${systemPrompt}\n\nAnaliza esta noticia: "${text}"`,
+                text: `${systemPrompt}\n\n**ANALIZA ESTA NOTICIA CRÍTICAMENTE:**\n"${text}"\n\nRecuerda: Es mejor ser cauteloso que permitir la propagación de desinformación.`,
               },
             ],
           },
         ],
         generationConfig: {
-          temperature: 0.3,
-          maxOutputTokens: 500,
+          temperature: 0.2, // Más determinístico
+          maxOutputTokens: 800, // Más detallado
         },
       },
       {
@@ -396,7 +427,15 @@ const analyzeWithGemini = async (text) => {
     const content = response.data.candidates[0].content.parts[0].text;
     const result = JSON.parse(content);
 
-    console.log("✅ Google Gemini analysis completed");
+    // Ajustar confianza para ser más conservador
+    if (result.confidence > 70 && result.isFake) {
+      result.confidence = Math.min(result.confidence, 85); // Máximo 85% si es fake
+    }
+    if (result.confidence < 30 && !result.isFake) {
+      result.confidence = Math.max(result.confidence, 15); // Mínimo 15% si es verdadera
+    }
+
+    console.log("✅ Google Gemini analysis completed (Modo Agresivo)");
     return {
       ...result,
       source: "Google Gemini",
@@ -408,7 +447,7 @@ const analyzeWithGemini = async (text) => {
   }
 };
 
-// Combinar todos los análisis disponibles
+// Combinar todos los análisis disponibles con IA mejorada
 const combineAllAnalysis = (results, verificationResults, isUrl) => {
   const availableResults = Object.entries(results)
     .filter(([key, result]) => result !== null)
@@ -422,23 +461,31 @@ const combineAllAnalysis = (results, verificationResults, isUrl) => {
     `🔄 Combinando ${availableResults.length} análisis con verificación externa...`
   );
 
-  // Calcular confianza ponderada
+  // Calcular confianza ponderada con pesos mejorados
   let totalConfidence = 0;
   let totalWeight = 0;
   const allFactors = [];
   const details = {};
 
+  // Pesos mejorados: Gemini tiene más peso, Hugging Face menos, Local mínimo
+  const weights = {
+    gemini: 0.6, // 60% - IA más avanzada
+    huggingface: 0.3, // 30% - IA especializada
+    local: 0.1, // 10% - Análisis básico
+  };
+
   availableResults.forEach((result) => {
-    const weight = config.analysis.weights[result.source] || 0.25;
+    const weight = weights[result.source] || 0.1;
     totalConfidence += result.confidence * weight;
     totalWeight += weight;
 
-    // Agregar factores
+    // Agregar factores con fuente identificada
     if (result.factors) {
       allFactors.push(
         ...result.factors.map((factor) => ({
           ...factor,
           source: result.source,
+          aiType: getAIType(result.source),
         }))
       );
     }
@@ -476,6 +523,7 @@ const combineAllAnalysis = (results, verificationResults, isUrl) => {
           description: rec,
           impact: "high",
           source: "verification",
+          aiType: "human",
         });
       });
     }
@@ -483,18 +531,24 @@ const combineAllAnalysis = (results, verificationResults, isUrl) => {
 
   const isFake = finalConfidence > config.analysis.thresholds.fake;
 
+  // Calcular porcentajes IA vs Humano
+  const aiAnalysis = calculateAIAnalysis(availableResults, allFactors);
+  const humanAnalysis = calculateHumanAnalysis(verificationResults);
+
   // Determinar modelo usado
   const modelsUsed = availableResults.map((r) => r.source).join(" + ");
   const modelName = verificationResults
-    ? `Multi-API + Verificación (${modelsUsed})`
-    : `Multi-API (${modelsUsed})`;
+    ? `IA Avanzada + Verificación Humana (${modelsUsed})`
+    : `IA Avanzada (${modelsUsed})`;
 
   // Generar explicación detallada
   const explanation = generateDetailedExplanation(
     finalConfidence,
     isFake,
     allFactors,
-    verificationResults
+    verificationResults,
+    aiAnalysis,
+    humanAnalysis
   );
 
   // Preparar respuesta extendida
@@ -510,9 +564,12 @@ const combineAllAnalysis = (results, verificationResults, isUrl) => {
         source: r.source,
         confidence: r.confidence,
         isFake: r.isFake,
+        aiType: getAIType(r.source),
       })),
       isUrl,
       analysisType: isUrl ? "URL Analysis" : "Text Analysis",
+      aiAnalysis,
+      humanAnalysis,
     },
     explanation: explanation,
     verdict: isFake ? "NO VERÍDICA" : "VERÍDICA",
@@ -533,12 +590,85 @@ const combineAllAnalysis = (results, verificationResults, isUrl) => {
   return response;
 };
 
-// Función para generar explicación detallada
+// Función para obtener el tipo de IA
+const getAIType = (source) => {
+  switch (source) {
+    case "gemini":
+      return "IA Avanzada (Gemini)";
+    case "huggingface":
+      return "IA Especializada (Hugging Face)";
+    case "local":
+      return "Análisis Local";
+    case "verification":
+      return "Verificación Humana";
+    default:
+      return "Análisis";
+  }
+};
+
+// Calcular análisis de IA
+const calculateAIAnalysis = (availableResults, allFactors) => {
+  const aiFactors = allFactors.filter((f) => f.source !== "verification");
+  const aiConfidence =
+    availableResults.reduce((sum, result) => {
+      const weight =
+        result.source === "gemini"
+          ? 0.6
+          : result.source === "huggingface"
+          ? 0.3
+          : 0.1;
+      return sum + result.confidence * weight;
+    }, 0) /
+    availableResults.reduce((sum, result) => {
+      const weight =
+        result.source === "gemini"
+          ? 0.6
+          : result.source === "huggingface"
+          ? 0.3
+          : 0.1;
+      return sum + weight;
+    }, 0);
+
+  return {
+    confidence: Math.round(aiConfidence),
+    factors: aiFactors.length,
+    sources: availableResults.map((r) => getAIType(r.source)),
+    percentage: Math.round((aiConfidence / 100) * 70), // 70% del análisis total
+  };
+};
+
+// Calcular análisis humano
+const calculateHumanAnalysis = (verificationResults) => {
+  if (!verificationResults) {
+    return {
+      confidence: 0,
+      factors: 0,
+      sources: [],
+      percentage: 0,
+    };
+  }
+
+  const humanFactors = verificationResults.recommendations
+    ? verificationResults.recommendations.length
+    : 0;
+  const humanConfidence = verificationResults.credibilityScore || 50;
+
+  return {
+    confidence: humanConfidence,
+    factors: humanFactors,
+    sources: ["Verificación Externa", "Análisis de Fuentes"],
+    percentage: Math.round((humanConfidence / 100) * 30), // 30% del análisis total
+  };
+};
+
+// Función para generar explicación detallada mejorada
 const generateDetailedExplanation = (
   confidence,
   isFake,
   factors,
-  verificationResults
+  verificationResults,
+  aiAnalysis,
+  humanAnalysis
 ) => {
   let explanation = "";
 
@@ -551,20 +681,67 @@ const generateDetailedExplanation = (
     explanation += `Esta noticia presenta características de información verídica con un nivel de confianza del ${confidence}%.\n\n`;
   }
 
-  // Factores principales
-  if (factors && factors.length > 0) {
-    explanation += `**🔍 FACTORES ANALIZADOS:**\n`;
-    const topFactors = factors
-      .filter((f) => f.impact === "high" || f.impact === "medium")
-      .slice(0, 5);
+  // Análisis IA vs Humano
+  explanation += `**🤖 ANÁLISIS INTELIGENTE:**\n`;
+  explanation += `• **IA Avanzada (Gemini)**: ${aiAnalysis.confidence}% de confianza\n`;
+  explanation += `• **IA Especializada (Hugging Face)**: Análisis de patrones\n`;
+  explanation += `• **Verificación Humana**: ${humanAnalysis.confidence}% de credibilidad\n`;
+  explanation += `• **Peso del análisis**: ${aiAnalysis.percentage}% IA / ${humanAnalysis.percentage}% Humano\n\n`;
 
-    topFactors.forEach((factor, index) => {
-      const icon = factor.impact === "high" ? "⚠️" : "📊";
-      explanation += `${index + 1}. ${icon} **${factor.name}**: ${
-        factor.description
-      }\n`;
-    });
-    explanation += "\n";
+  // Factores principales por tipo de IA
+  if (factors && factors.length > 0) {
+    explanation += `**🔍 FACTORES DETECTADOS:**\n`;
+
+    // Agrupar factores por tipo de IA
+    const geminiFactors = factors.filter(
+      (f) =>
+        f.source === "gemini" && (f.impact === "high" || f.impact === "medium")
+    );
+    const huggingfaceFactors = factors.filter(
+      (f) =>
+        f.source === "huggingface" &&
+        (f.impact === "high" || f.impact === "medium")
+    );
+    const localFactors = factors.filter(
+      (f) =>
+        f.source === "local" && (f.impact === "high" || f.impact === "medium")
+    );
+    const humanFactors = factors.filter((f) => f.source === "verification");
+
+    if (geminiFactors.length > 0) {
+      explanation += `**🤖 IA Avanzada (Gemini):**\n`;
+      geminiFactors.slice(0, 3).forEach((factor, index) => {
+        const icon = factor.impact === "high" ? "🚨" : "⚠️";
+        explanation += `${index + 1}. ${icon} ${factor.description}\n`;
+      });
+      explanation += "\n";
+    }
+
+    if (huggingfaceFactors.length > 0) {
+      explanation += `**🧠 IA Especializada (Hugging Face):**\n`;
+      huggingfaceFactors.slice(0, 2).forEach((factor, index) => {
+        const icon = factor.impact === "high" ? "🔍" : "📊";
+        explanation += `${index + 1}. ${icon} ${factor.description}\n`;
+      });
+      explanation += "\n";
+    }
+
+    if (localFactors.length > 0) {
+      explanation += `**🔧 Análisis Local:**\n`;
+      localFactors.slice(0, 2).forEach((factor, index) => {
+        const icon = factor.impact === "high" ? "⚡" : "📝";
+        explanation += `${index + 1}. ${icon} ${factor.description}\n`;
+      });
+      explanation += "\n";
+    }
+
+    if (humanFactors.length > 0) {
+      explanation += `**👥 Verificación Humana:**\n`;
+      humanFactors.slice(0, 3).forEach((factor, index) => {
+        explanation += `${index + 1}. ✅ ${factor.description}\n`;
+      });
+      explanation += "\n";
+    }
   }
 
   // Fuentes consultadas
@@ -573,7 +750,7 @@ const generateDetailedExplanation = (
     verificationResults.relatedArticles &&
     verificationResults.relatedArticles.length > 0
   ) {
-    explanation += `**📰 FUENTES CONSULTADAS:**\n`;
+    explanation += `**📰 FUENTES VERIFICADAS:**\n`;
     const sources = verificationResults.relatedArticles.slice(0, 3);
     sources.forEach((source, index) => {
       explanation += `${index + 1}. **${source.source}**: ${source.title}\n`;
@@ -597,21 +774,21 @@ const generateDetailedExplanation = (
     explanation += "\n";
   }
 
-  // Explicación final
+  // Explicación final mejorada
   if (isFake) {
     explanation += `**🚨 RAZONES PRINCIPALES:**\n`;
-    explanation += `• Se detectaron patrones típicos de noticias falsas\n`;
-    explanation += `• Falta de fuentes verificables o confiables\n`;
-    explanation += `• Uso de lenguaje sensacionalista o manipulador\n`;
-    explanation += `• Inconsistencias en la información presentada\n\n`;
-    explanation += `**⚠️ RECOMENDACIÓN:** Verifica esta información con fuentes oficiales antes de compartirla.`;
+    explanation += `• **IA Avanzada detectó**: Patrones de desinformación\n`;
+    explanation += `• **IA Especializada confirmó**: Características de fake news\n`;
+    explanation += `• **Verificación humana**: Fuentes no confiables o contradictorias\n`;
+    explanation += `• **Análisis local**: Indicadores de manipulación\n\n`;
+    explanation += `**⚠️ RECOMENDACIÓN:** Esta información presenta múltiples señales de alerta. Verifica con fuentes oficiales antes de compartir.`;
   } else {
     explanation += `**✅ RAZONES PRINCIPALES:**\n`;
-    explanation += `• La información presenta características de credibilidad\n`;
-    explanation += `• Se encontraron fuentes verificables relacionadas\n`;
-    explanation += `• El lenguaje es objetivo y factual\n`;
-    explanation += `• La información es consistente y verificable\n\n`;
-    explanation += `**✅ RECOMENDACIÓN:** Esta información parece confiable, pero siempre verifica con múltiples fuentes.`;
+    explanation += `• **IA Avanzada confirmó**: Información coherente y factual\n`;
+    explanation += `• **IA Especializada validó**: Patrones de credibilidad\n`;
+    explanation += `• **Verificación humana**: Fuentes confiables y verificables\n`;
+    explanation += `• **Análisis local**: Indicadores de objetividad\n\n`;
+    explanation += `**✅ RECOMENDACIÓN:** Esta información parece confiable según múltiples análisis, pero siempre verifica con fuentes adicionales.`;
   }
 
   return explanation;

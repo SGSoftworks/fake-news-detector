@@ -221,6 +221,85 @@ const Analysis = () => {
                   <span className="font-medium">{result.model}</span>
                 </div>
               </div>
+
+              {/* AI vs Human Analysis */}
+              {result.details &&
+                (result.details.aiAnalysis || result.details.humanAnalysis) && (
+                  <div className="mt-6 pt-4 border-t border-gray-200">
+                    <h5 className="font-medium text-gray-800 mb-3">
+                      Análisis IA vs Humano
+                    </h5>
+                    <div className="space-y-3">
+                      {result.details.aiAnalysis && (
+                        <div className="bg-blue-50 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-blue-800">
+                              🤖 Análisis IA
+                            </span>
+                            <span className="text-sm font-bold text-blue-600">
+                              {result.details.aiAnalysis.percentage}%
+                            </span>
+                          </div>
+                          <div className="w-full bg-blue-200 rounded-full h-2 mb-2">
+                            <div
+                              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                              style={{
+                                width: `${result.details.aiAnalysis.confidence}%`,
+                              }}
+                            />
+                          </div>
+                          <div className="text-xs text-blue-700">
+                            <p>
+                              Confianza: {result.details.aiAnalysis.confidence}%
+                            </p>
+                            <p>Factores: {result.details.aiAnalysis.factors}</p>
+                            <p>
+                              Fuentes:{" "}
+                              {result.details.aiAnalysis.sources.join(", ")}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {result.details.humanAnalysis &&
+                        result.details.humanAnalysis.percentage > 0 && (
+                          <div className="bg-green-50 rounded-lg p-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium text-green-800">
+                                👥 Verificación Humana
+                              </span>
+                              <span className="text-sm font-bold text-green-600">
+                                {result.details.humanAnalysis.percentage}%
+                              </span>
+                            </div>
+                            <div className="w-full bg-green-200 rounded-full h-2 mb-2">
+                              <div
+                                className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                                style={{
+                                  width: `${result.details.humanAnalysis.confidence}%`,
+                                }}
+                              />
+                            </div>
+                            <div className="text-xs text-green-700">
+                              <p>
+                                Credibilidad:{" "}
+                                {result.details.humanAnalysis.confidence}%
+                              </p>
+                              <p>
+                                Factores: {result.details.humanAnalysis.factors}
+                              </p>
+                              <p>
+                                Fuentes:{" "}
+                                {result.details.humanAnalysis.sources.join(
+                                  ", "
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                    </div>
+                  </div>
+                )}
             </div>
           </div>
 
@@ -228,16 +307,16 @@ const Analysis = () => {
           {result.factors && result.factors.length > 0 && (
             <div className="mt-8 pt-6 border-t border-gray-200">
               <h4 className="font-semibold text-gray-900 mb-4">
-                Factores Identificados
+                Factores Detectados por IA
               </h4>
               <div className="grid md:grid-cols-2 gap-4">
                 {result.factors.map((factor, index) => (
                   <div
                     key={index}
-                    className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg"
+                    className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg"
                   >
                     <div
-                      className={`w-3 h-3 rounded-full ${
+                      className={`w-3 h-3 rounded-full mt-1 ${
                         factor.impact === "high"
                           ? "bg-danger-500"
                           : factor.impact === "medium"
@@ -245,8 +324,25 @@ const Analysis = () => {
                           : "bg-success-500"
                       }`}
                     />
-                    <div>
-                      <p className="font-medium text-gray-900">{factor.name}</p>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="font-medium text-gray-900">
+                          {factor.name}
+                        </p>
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full ${
+                            factor.source === "gemini"
+                              ? "bg-blue-100 text-blue-800"
+                              : factor.source === "huggingface"
+                              ? "bg-purple-100 text-purple-800"
+                              : factor.source === "local"
+                              ? "bg-orange-100 text-orange-800"
+                              : "bg-green-100 text-green-800"
+                          }`}
+                        >
+                          {factor.aiType || factor.source}
+                        </span>
+                      </div>
                       <p className="text-sm text-gray-600">
                         {factor.description}
                       </p>

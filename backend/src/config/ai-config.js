@@ -27,27 +27,34 @@ const aiConfig = {
     enabled: !!process.env.GEMINI_API_KEY,
   },
 
-  // Configuración de análisis combinado
+  // Configuración de análisis combinado mejorada
   analysis: {
-    // Ponderaciones para combinar resultados
+    // Ponderaciones para combinar resultados (IA más agresiva)
     weights: {
-      local: parseFloat(process.env.LOCAL_WEIGHT) || 0.3,
-      openai: parseFloat(process.env.OPENAI_WEIGHT) || 0.3,
-      huggingface: parseFloat(process.env.HUGGINGFACE_WEIGHT) || 0.2,
-      gemini: parseFloat(process.env.GEMINI_WEIGHT) || 0.2,
+      local: parseFloat(process.env.LOCAL_WEIGHT) || 0.1, // Peso mínimo
+      openai: parseFloat(process.env.OPENAI_WEIGHT) || 0.0, // No usar OpenAI
+      huggingface: parseFloat(process.env.HUGGINGFACE_WEIGHT) || 0.3, // Peso medio
+      gemini: parseFloat(process.env.GEMINI_WEIGHT) || 0.6, // Peso máximo
     },
 
-    // Umbrales de confianza
+    // Umbrales de confianza más estrictos
     thresholds: {
-      fake: parseFloat(process.env.FAKE_THRESHOLD) || 60,
-      highConfidence: parseFloat(process.env.HIGH_CONFIDENCE_THRESHOLD) || 80,
+      fake: parseFloat(process.env.FAKE_THRESHOLD) || 55, // Más estricto
+      highConfidence: parseFloat(process.env.HIGH_CONFIDENCE_THRESHOLD) || 85,
     },
 
-    // Timeouts para APIs
+    // Timeouts para APIs (más tiempo para análisis detallado)
     timeouts: {
       openai: parseInt(process.env.OPENAI_TIMEOUT) || 10000,
       huggingface: parseInt(process.env.HUGGINGFACE_TIMEOUT) || 15000,
-      gemini: parseInt(process.env.GEMINI_TIMEOUT) || 12000,
+      gemini: parseInt(process.env.GEMINI_TIMEOUT) || 20000, // Más tiempo para Gemini
+    },
+
+    // Configuración automática
+    autoEnable: {
+      gemini: true, // Siempre usar Gemini si está disponible
+      huggingface: true, // Siempre usar Hugging Face si está disponible
+      verification: true, // Siempre usar verificación externa
     },
   },
 
