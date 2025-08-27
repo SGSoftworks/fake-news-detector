@@ -15,13 +15,29 @@ import { analyzeNews } from "../services/aiService";
 
 const Analysis = () => {
   const [newsText, setNewsText] = useState("");
+  const [inputType, setInputType] = useState("text"); // "text" o "url"
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
 
+  // Función para validar URLs
+  const isValidUrl = (string) => {
+    try {
+      new URL(string);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  };
+
   const handleAnalyze = async () => {
     if (!newsText.trim()) {
-      setError("Por favor, ingresa el texto de la noticia para analizar.");
+      setError("Por favor, ingresa el contenido para analizar.");
+      return;
+    }
+
+    if (inputType === "url" && !isValidUrl(newsText)) {
+      setError("Por favor, ingresa una URL válida.");
       return;
     }
 
@@ -34,13 +50,17 @@ const Analysis = () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 segundos
 
-      const analysisResult = await analyzeNews(newsText, controller.signal);
+      const analysisResult = await analyzeNews(
+        newsText,
+        inputType,
+        controller.signal
+      );
       clearTimeout(timeoutId);
       setResult(analysisResult);
     } catch (err) {
       if (err.name === "AbortError") {
         setError(
-          "El análisis tardó demasiado. Por favor, intenta con un texto más corto."
+          "El análisis tardó demasiado. Por favor, intenta con un contenido más corto."
         );
       } else if (err.message.includes("Failed to fetch")) {
         setError("Error de conexión. Verifica tu internet e intenta de nuevo.");
@@ -116,30 +136,71 @@ const Analysis = () => {
           Analizar Noticia
         </h1>
         <p className="text-gray-600">
-          Pega el texto de la noticia que quieres verificar y nuestro sistema de
-          IA lo analizará automáticamente.
+          Analiza texto o URLs de noticias con nuestro sistema de IA avanzado.
         </p>
       </div>
 
       {/* Analysis Form */}
       <div className="card">
         <div className="mb-6">
-          <label
-            htmlFor="newsText"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Texto de la Noticia
-          </label>
-          <textarea
-            id="newsText"
-            value={newsText}
-            onChange={(e) => setNewsText(e.target.value)}
-            placeholder="Pega aquí el texto de la noticia que quieres analizar..."
-            className="input-field h-32 resize-none"
-            disabled={isAnalyzing}
-          />
+          <div className="flex items-center justify-between mb-2">
+            <label
+              htmlFor="newsInput"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Noticia a Analizar
+            </label>
+            <div className="flex items-center space-x-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="inputType"
+                  value="text"
+                  checked={inputType === "text"}
+                  onChange={(e) => setInputType(e.target.value)}
+                  className="mr-2"
+                />
+                <span className="text-sm text-gray-600">Texto</span>
+              </label>
+              <label className="flex items-center">
+                <span className="text-sm text-gray-600">URL</span>
+                <input
+                  type="radio"
+                  name="inputType"
+                  value="url"
+                  checked={inputType === "url"}
+                  onChange={(e) => setInputType(e.target.value)}
+                  className="ml-2"
+                />
+              </label>
+            </div>
+          </div>
+
+          {inputType === "text" ? (
+            <textarea
+              id="newsInput"
+              value={newsText}
+              onChange={(e) => setNewsText(e.target.value)}
+              placeholder="Pega aquí el texto de la noticia que quieres analizar..."
+              className="input-field h-32 resize-none"
+              disabled={isAnalyzing}
+            />
+          ) : (
+            <input
+              type="url"
+              id="newsInput"
+              value={newsText}
+              onChange={(e) => setNewsText(e.target.value)}
+              placeholder="https://ejemplo.com/noticia-para-verificar"
+              className="input-field"
+              disabled={isAnalyzing}
+            />
+          )}
+
           <p className="text-sm text-gray-500 mt-2">
-            Mínimo 50 caracteres para un análisis preciso
+            {inputType === "text"
+              ? "Mínimo 50 caracteres para un análisis preciso"
+              : "Ingresa la URL completa de la noticia para análisis automático"}
           </p>
         </div>
 
@@ -151,7 +212,11 @@ const Analysis = () => {
 
         <button
           onClick={handleAnalyze}
-          disabled={isAnalyzing || !newsText.trim()}
+          disabled={
+            isAnalyzing ||
+            !newsText.trim() ||
+            (inputType === "url" && !isValidUrl(newsText))
+          }
           className="btn-primary w-full flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isAnalyzing ? (
@@ -220,7 +285,21 @@ const Analysis = () => {
               </h4>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Longitud del texto:</span>
+                  <span className="text-gray-600">Tipo de entrada:</span>
+                  <span className="font-medium capitalize">
+                    {result.inputType || "texto"}
+                  </span>
+                </div>
+                {result.originalUrl && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">URL analizada:</span>
+                    <span className="font-medium text-blue-600 truncate max-w-xs">
+                      {result.originalUrl}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Longitud del contenido:</span>
                   <span className="font-medium">
                     {result.textLength} caracteres
                   </span>
@@ -326,6 +405,94 @@ const Analysis = () => {
                 )}
             </div>
           </div>
+
+          {/* Similar Headlines */}
+          {result.similarHeadlines && result.similarHeadlines.length > 0 && (
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <h4 className="font-semibold text-gray-900 mb-4">
+                Titulares Similares Encontrados
+              </h4>
+              <div className="space-y-3">
+                {result.similarHeadlines.map((headline, index) => (
+                  <div key={index} className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <h5 className="font-medium text-gray-900 text-sm leading-relaxed">
+                        {headline.title}
+                      </h5>
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full ml-2 flex-shrink-0 ${
+                          headline.semanticScore >= 80
+                            ? "bg-green-100 text-green-800"
+                            : headline.semanticScore >= 60
+                            ? "bg-yellow-100 text-yellow-800"
+                            : headline.semanticScore >= 40
+                            ? "bg-orange-100 text-orange-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {headline.semanticScore}% similitud
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-gray-600">
+                      <span className="font-medium">{headline.source}</span>
+                      <a
+                        href={headline.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 underline"
+                      >
+                        Ver noticia →
+                      </a>
+                    </div>
+                    {headline.snippet && (
+                      <p className="text-xs text-gray-500 mt-2 line-clamp-2">
+                        {headline.snippet}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {result.comparisonReport && (
+                <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                  <h5 className="font-medium text-blue-900 mb-2">
+                    📊 Reporte de Comparación
+                  </h5>
+                  <div className="text-sm text-blue-800 space-y-2">
+                    <p>
+                      <strong>Resumen:</strong>{" "}
+                      {result.comparisonReport.summary}
+                    </p>
+                    {result.comparisonReport.consistency && (
+                      <p>
+                        <strong>Consistencia:</strong>{" "}
+                        {result.comparisonReport.consistency}
+                      </p>
+                    )}
+                    {result.comparisonReport.credibility && (
+                      <p>
+                        <strong>Credibilidad:</strong>{" "}
+                        {result.comparisonReport.credibility}
+                      </p>
+                    )}
+                    {result.comparisonReport.recommendations &&
+                      result.comparisonReport.recommendations.length > 0 && (
+                        <div>
+                          <strong>Recomendaciones:</strong>
+                          <ul className="list-disc list-inside mt-1 ml-2">
+                            {result.comparisonReport.recommendations.map(
+                              (rec, i) => (
+                                <li key={i}>{rec}</li>
+                              )
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Factors */}
           {result.factors && result.factors.length > 0 && (

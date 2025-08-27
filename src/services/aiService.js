@@ -3,8 +3,8 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
-// Función para analizar texto usando el backend real
-export const analyzeNews = async (text, signal) => {
+// Función para analizar texto o URL usando el backend real
+export const analyzeNews = async (content, inputType = "text", signal) => {
   const startTime = Date.now();
 
   try {
@@ -14,7 +14,11 @@ export const analyzeNews = async (text, signal) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({
+        content,
+        inputType, // "text" o "url"
+        analyzeUrl: inputType === "url",
+      }),
       signal, // Agregar signal para abortar la petición
     });
 
@@ -28,9 +32,13 @@ export const analyzeNews = async (text, signal) => {
     return {
       ...result,
       analysisTime: Date.now() - startTime,
-      textLength: text.length,
+      textLength: result.extractedText
+        ? result.extractedText.length
+        : content.length,
       model: result.model || "Local Analysis v2.0",
       timestamp: new Date().toISOString(),
+      inputType,
+      originalContent: content,
     };
   } catch (error) {
     if (error.name === "AbortError") {
