@@ -29,12 +29,12 @@ const aiConfig = {
 
   // Configuración de análisis combinado mejorada
   analysis: {
-    // Ponderaciones para combinar resultados (IA más agresiva)
+    // Ponderaciones para combinar resultados (Gemini prioritario)
     weights: {
-      local: parseFloat(process.env.LOCAL_WEIGHT) || 0.1, // Peso mínimo
+      local: parseFloat(process.env.LOCAL_WEIGHT) || 0.05, // Peso mínimo
       openai: parseFloat(process.env.OPENAI_WEIGHT) || 0.0, // No usar OpenAI
-      huggingface: parseFloat(process.env.HUGGINGFACE_WEIGHT) || 0.3, // Peso medio
-      gemini: parseFloat(process.env.GEMINI_WEIGHT) || 0.6, // Peso máximo
+      huggingface: parseFloat(process.env.HUGGINGFACE_WEIGHT) || 0.15, // Peso bajo
+      gemini: parseFloat(process.env.GEMINI_WEIGHT) || 0.8, // Peso máximo - Gemini prioritario
     },
 
     // Umbrales de confianza más estrictos

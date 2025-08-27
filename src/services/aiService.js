@@ -4,7 +4,7 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
 // Función para analizar texto usando el backend real
-export const analyzeNews = async (text) => {
+export const analyzeNews = async (text, signal) => {
   const startTime = Date.now();
 
   try {
@@ -15,6 +15,7 @@ export const analyzeNews = async (text) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ text }),
+      signal, // Agregar signal para abortar la petición
     });
 
     if (!response.ok) {
@@ -32,6 +33,9 @@ export const analyzeNews = async (text) => {
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
+    if (error.name === "AbortError") {
+      throw error; // Re-lanzar AbortError
+    }
     console.error("Error en análisis:", error);
     throw new Error("Error al analizar la noticia");
   }

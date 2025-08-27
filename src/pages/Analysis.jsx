@@ -30,10 +30,23 @@ const Analysis = () => {
     setResult(null);
 
     try {
-      const analysisResult = await analyzeNews(newsText);
+      // Agregar timeout para evitar errores de conexión
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 segundos
+
+      const analysisResult = await analyzeNews(newsText, controller.signal);
+      clearTimeout(timeoutId);
       setResult(analysisResult);
     } catch (err) {
-      setError("Error al analizar la noticia. Por favor, intenta de nuevo.");
+      if (err.name === "AbortError") {
+        setError(
+          "El análisis tardó demasiado. Por favor, intenta con un texto más corto."
+        );
+      } else if (err.message.includes("Failed to fetch")) {
+        setError("Error de conexión. Verifica tu internet e intenta de nuevo.");
+      } else {
+        setError("Error al analizar la noticia. Por favor, intenta de nuevo.");
+      }
       console.error("Analysis error:", err);
     } finally {
       setIsAnalyzing(false);
@@ -229,10 +242,10 @@ const Analysis = () => {
                     <h5 className="font-medium text-gray-800 mb-3">
                       Análisis IA vs Humano
                     </h5>
-                    <div className="space-y-3">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {result.details.aiAnalysis && (
-                        <div className="bg-blue-50 rounded-lg p-3">
-                          <div className="flex items-center justify-between mb-2">
+                        <div className="bg-blue-50 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-3">
                             <span className="text-sm font-medium text-blue-800">
                               🤖 Análisis IA
                             </span>
@@ -240,7 +253,7 @@ const Analysis = () => {
                               {result.details.aiAnalysis.percentage}%
                             </span>
                           </div>
-                          <div className="w-full bg-blue-200 rounded-full h-2 mb-2">
+                          <div className="w-full bg-blue-200 rounded-full h-2 mb-3">
                             <div
                               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                               style={{
@@ -248,13 +261,20 @@ const Analysis = () => {
                               }}
                             />
                           </div>
-                          <div className="text-xs text-blue-700">
-                            <p>
-                              Confianza: {result.details.aiAnalysis.confidence}%
+                          <div className="text-xs text-blue-700 space-y-1">
+                            <p className="flex justify-between">
+                              <span>Confianza:</span>
+                              <span className="font-medium">
+                                {result.details.aiAnalysis.confidence}%
+                              </span>
                             </p>
-                            <p>Factores: {result.details.aiAnalysis.factors}</p>
-                            <p>
-                              Fuentes:{" "}
+                            <p className="flex justify-between">
+                              <span>Factores:</span>
+                              <span className="font-medium">
+                                {result.details.aiAnalysis.factors}
+                              </span>
+                            </p>
+                            <p className="text-blue-600 font-medium truncate">
                               {result.details.aiAnalysis.sources.join(", ")}
                             </p>
                           </div>
@@ -263,8 +283,8 @@ const Analysis = () => {
 
                       {result.details.humanAnalysis &&
                         result.details.humanAnalysis.percentage > 0 && (
-                          <div className="bg-green-50 rounded-lg p-3">
-                            <div className="flex items-center justify-between mb-2">
+                          <div className="bg-green-50 rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-3">
                               <span className="text-sm font-medium text-green-800">
                                 👥 Verificación Humana
                               </span>
@@ -272,7 +292,7 @@ const Analysis = () => {
                                 {result.details.humanAnalysis.percentage}%
                               </span>
                             </div>
-                            <div className="w-full bg-green-200 rounded-full h-2 mb-2">
+                            <div className="w-full bg-green-200 rounded-full h-2 mb-3">
                               <div
                                 className="bg-green-600 h-2 rounded-full transition-all duration-300"
                                 style={{
@@ -280,16 +300,20 @@ const Analysis = () => {
                                 }}
                               />
                             </div>
-                            <div className="text-xs text-green-700">
-                              <p>
-                                Credibilidad:{" "}
-                                {result.details.humanAnalysis.confidence}%
+                            <div className="text-xs text-green-700 space-y-1">
+                              <p className="flex justify-between">
+                                <span>Credibilidad:</span>
+                                <span className="font-medium">
+                                  {result.details.humanAnalysis.confidence}%
+                                </span>
                               </p>
-                              <p>
-                                Factores: {result.details.humanAnalysis.factors}
+                              <p className="flex justify-between">
+                                <span>Factores:</span>
+                                <span className="font-medium">
+                                  {result.details.humanAnalysis.factors}
+                                </span>
                               </p>
-                              <p>
-                                Fuentes:{" "}
+                              <p className="text-green-600 font-medium truncate">
                                 {result.details.humanAnalysis.sources.join(
                                   ", "
                                 )}
@@ -309,14 +333,14 @@ const Analysis = () => {
               <h4 className="font-semibold text-gray-900 mb-4">
                 Factores Detectados por IA
               </h4>
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {result.factors.map((factor, index) => (
                   <div
                     key={index}
                     className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg"
                   >
                     <div
-                      className={`w-3 h-3 rounded-full mt-1 ${
+                      className={`w-3 h-3 rounded-full mt-1 flex-shrink-0 ${
                         factor.impact === "high"
                           ? "bg-danger-500"
                           : factor.impact === "medium"
@@ -324,13 +348,13 @@ const Analysis = () => {
                           : "bg-success-500"
                       }`}
                     />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="font-medium text-gray-900">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-1">
+                        <p className="font-medium text-gray-900 text-sm sm:text-base truncate">
                           {factor.name}
                         </p>
                         <span
-                          className={`text-xs px-2 py-1 rounded-full ${
+                          className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
                             factor.source === "gemini"
                               ? "bg-blue-100 text-blue-800"
                               : factor.source === "huggingface"
@@ -343,7 +367,7 @@ const Analysis = () => {
                           {factor.aiType || factor.source}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-600 leading-relaxed">
                         {factor.description}
                       </p>
                     </div>
