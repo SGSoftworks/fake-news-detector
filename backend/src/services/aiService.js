@@ -366,9 +366,9 @@ const analyzeWithGemini = async (text) => {
       "explanation": string
     }
     
-    **FACTORES CRÍTICOS A EVALUAR (Sé estricto):**
+    FACTORES CRÍTICOS A EVALUAR (Sé estricto):
     
-    🚨 **SEÑALES DE ALERTA MÁXIMA:**
+    🚨 SEÑALES DE ALERTA MÁXIMA:
     - Lenguaje sensacionalista, emocional o manipulador
     - Falta de fuentes específicas, citas o referencias
     - Uso excesivo de mayúsculas, signos de exclamación
@@ -377,21 +377,21 @@ const analyzeWithGemini = async (text) => {
     - Ataques personales o lenguaje polarizante
     - Falta de fechas, lugares o detalles verificables
     
-    🔍 **ANÁLISIS DE CREDIBILIDAD:**
+    🔍 ANÁLISIS DE CREDIBILIDAD:
     - ¿Las fuentes mencionadas son confiables?
     - ¿La información es verificable?
     - ¿El tono es objetivo o manipulador?
     - ¿Hay contradicciones internas?
     - ¿La información parece demasiado perfecta o conveniente?
     
-    ⚠️ **INSTRUCCIONES ESPECIALES:**
+    ⚠️ INSTRUCCIONES ESPECIALES:
     - Si hay CUALQUIER señal de alerta, marca como potencialmente falsa
     - Sé más estricto con noticias que carecen de fuentes
     - Considera el contexto político/social actual
     - Evalúa si la información podría causar daño si se comparte
     - Prioriza la seguridad del usuario sobre dar el beneficio de la duda
     
-    **ESCALA DE CONFIANZA:**
+    ESCALA DE CONFIANZA:
     - 0-30: Muy probablemente falsa
     - 31-50: Probablemente falsa
     - 51-70: Dudosa, necesita verificación
@@ -405,7 +405,7 @@ const analyzeWithGemini = async (text) => {
           {
             parts: [
               {
-                text: `${systemPrompt}\n\n**ANALIZA ESTA NOTICIA CRÍTICAMENTE:**\n"${text}"\n\nRecuerda: Es mejor ser cauteloso que permitir la propagación de desinformación.`,
+                text: `${systemPrompt}\n\nANALIZA ESTA NOTICIA CRÍTICAMENTE:\n"${text}"\n\nRecuerda: Es mejor ser cauteloso que permitir la propagación de desinformación.`,
               },
             ],
           },
@@ -674,23 +674,23 @@ const generateDetailedExplanation = (
 
   // Veredicto principal
   if (isFake) {
-    explanation += `🔴 **VEREDICTO: NO VERÍDICA**\n\n`;
+    explanation += `🔴 VEREDICTO: NO VERÍDICA\n\n`;
     explanation += `Esta noticia presenta características típicas de información no verídica con un nivel de confianza del ${confidence}%.\n\n`;
   } else {
-    explanation += `🟢 **VEREDICTO: VERÍDICA**\n\n`;
+    explanation += `🟢 VEREDICTO: VERÍDICA\n\n`;
     explanation += `Esta noticia presenta características de información verídica con un nivel de confianza del ${confidence}%.\n\n`;
   }
 
   // Análisis IA vs Humano
-  explanation += `**🤖 ANÁLISIS INTELIGENTE:**\n`;
-  explanation += `• **IA Avanzada (Gemini)**: ${aiAnalysis.confidence}% de confianza\n`;
-  explanation += `• **IA Especializada (Hugging Face)**: Análisis de patrones\n`;
-  explanation += `• **Verificación Humana**: ${humanAnalysis.confidence}% de credibilidad\n`;
-  explanation += `• **Peso del análisis**: ${aiAnalysis.percentage}% IA / ${humanAnalysis.percentage}% Humano\n\n`;
+  explanation += `🤖 ANÁLISIS INTELIGENTE:\n`;
+  explanation += `• IA Avanzada (Gemini): ${aiAnalysis.confidence}% de confianza\n`;
+  explanation += `• IA Especializada (Hugging Face): Análisis de patrones\n`;
+  explanation += `• Verificación Humana: ${humanAnalysis.confidence}% de credibilidad\n`;
+  explanation += `• Peso del análisis: ${aiAnalysis.percentage}% IA / ${humanAnalysis.percentage}% Humano\n\n`;
 
   // Factores principales por tipo de IA
   if (factors && factors.length > 0) {
-    explanation += `**🔍 FACTORES DETECTADOS:**\n`;
+    explanation += `🔍 FACTORES DETECTADOS:\n`;
 
     // Agrupar factores por tipo de IA
     const geminiFactors = factors.filter(
@@ -709,7 +709,7 @@ const generateDetailedExplanation = (
     const humanFactors = factors.filter((f) => f.source === "verification");
 
     if (geminiFactors.length > 0) {
-      explanation += `**🤖 IA Avanzada (Gemini):**\n`;
+      explanation += `🤖 IA Avanzada (Gemini):\n`;
       geminiFactors.slice(0, 3).forEach((factor, index) => {
         const icon = factor.impact === "high" ? "🚨" : "⚠️";
         explanation += `${index + 1}. ${icon} ${factor.description}\n`;
@@ -718,7 +718,7 @@ const generateDetailedExplanation = (
     }
 
     if (huggingfaceFactors.length > 0) {
-      explanation += `**🧠 IA Especializada (Hugging Face):**\n`;
+      explanation += `🧠 IA Especializada (Hugging Face):\n`;
       huggingfaceFactors.slice(0, 2).forEach((factor, index) => {
         const icon = factor.impact === "high" ? "🔍" : "📊";
         explanation += `${index + 1}. ${icon} ${factor.description}\n`;
@@ -727,7 +727,7 @@ const generateDetailedExplanation = (
     }
 
     if (localFactors.length > 0) {
-      explanation += `**🔧 Análisis Local:**\n`;
+      explanation += `🔧 Análisis Local:\n`;
       localFactors.slice(0, 2).forEach((factor, index) => {
         const icon = factor.impact === "high" ? "⚡" : "📝";
         explanation += `${index + 1}. ${icon} ${factor.description}\n`;
@@ -736,7 +736,7 @@ const generateDetailedExplanation = (
     }
 
     if (humanFactors.length > 0) {
-      explanation += `**👥 Verificación Humana:**\n`;
+      explanation += `👥 Verificación Humana:\n`;
       humanFactors.slice(0, 3).forEach((factor, index) => {
         explanation += `${index + 1}. ✅ ${factor.description}\n`;
       });
@@ -749,17 +749,7 @@ const generateDetailedExplanation = (
     verificationResults &&
     verificationResults.relatedArticles &&
     verificationResults.relatedArticles.length > 0
-  ) {
-    explanation += `**📰 FUENTES VERIFICADAS:**\n`;
-    const sources = verificationResults.relatedArticles.slice(0, 3);
-    sources.forEach((source, index) => {
-      explanation += `${index + 1}. **${source.source}**: ${source.title}\n`;
-      if (source.snippet) {
-        explanation += `   ${source.snippet.substring(0, 100)}...\n`;
-      }
-    });
-    explanation += "\n";
-  }
+  )
 
   // Recomendaciones
   if (
@@ -767,7 +757,7 @@ const generateDetailedExplanation = (
     verificationResults.recommendations &&
     verificationResults.recommendations.length > 0
   ) {
-    explanation += `**💡 RECOMENDACIONES:**\n`;
+    explanation += `💡 RECOMENDACIONES:\n`;
     verificationResults.recommendations.forEach((rec, index) => {
       explanation += `${index + 1}. ${rec}\n`;
     });
@@ -776,19 +766,19 @@ const generateDetailedExplanation = (
 
   // Explicación final mejorada
   if (isFake) {
-    explanation += `**🚨 RAZONES PRINCIPALES:**\n`;
-    explanation += `• **IA Avanzada detectó**: Patrones de desinformación\n`;
-    explanation += `• **IA Especializada confirmó**: Características de fake news\n`;
-    explanation += `• **Verificación humana**: Fuentes no confiables o contradictorias\n`;
-    explanation += `• **Análisis local**: Indicadores de manipulación\n\n`;
-    explanation += `**⚠️ RECOMENDACIÓN:** Esta información presenta múltiples señales de alerta. Verifica con fuentes oficiales antes de compartir.`;
+    explanation += `🚨 RAZONES PRINCIPALES:\n`;
+    explanation += `• IA Avanzada detectó: Patrones de desinformación\n`;
+    explanation += `• IA Especializada confirmó: Características de fake news\n`;
+    explanation += `• Verificación humana: Fuentes no confiables o contradictorias\n`;
+    explanation += `• Análisis local: Indicadores de manipulación\n\n`;
+    explanation += `⚠️ RECOMENDACIÓN: Esta información presenta múltiples señales de alerta. Verifica con fuentes oficiales antes de compartir.`;
   } else {
-    explanation += `**✅ RAZONES PRINCIPALES:**\n`;
-    explanation += `• **IA Avanzada confirmó**: Información coherente y factual\n`;
-    explanation += `• **IA Especializada validó**: Patrones de credibilidad\n`;
-    explanation += `• **Verificación humana**: Fuentes confiables y verificables\n`;
-    explanation += `• **Análisis local**: Indicadores de objetividad\n\n`;
-    explanation += `**✅ RECOMENDACIÓN:** Esta información parece confiable según múltiples análisis, pero siempre verifica con fuentes adicionales.`;
+    explanation += `✅ RAZONES PRINCIPALES:\n`;
+    explanation += `• IA Avanzada confirmó: Información coherente y factual\n`;
+    explanation += `• IA Especializada validó: Patrones de credibilidad\n`;
+    explanation += `• Verificación humana: Fuentes confiables y verificables\n`;
+    explanation += `• Análisis local: Indicadores de objetividad\n\n`;
+    explanation += `✅ RECOMENDACIÓN: Esta información parece confiable según múltiples análisis, pero siempre verifica con fuentes adicionales.`;
   }
 
   return explanation;
