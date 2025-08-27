@@ -301,19 +301,35 @@ Output:
 
 ## 🚀 Despliegue
 
-### Netlify (Frontend)
+### Vercel (Recomendado - Full Stack)
 
-1. Conectar repositorio a Netlify
-2. Configurar build command: `npm run build`
-3. Configurar publish directory: `dist`
-4. Configurar variables de entorno
+**Ventajas:**
 
-### Vercel (Backend)
+- ✅ Un solo dominio para frontend y backend
+- ✅ Sin problemas de CORS
+- ✅ Despliegue automático
+- ✅ SSL gratuito
+- ✅ CDN global
 
-1. Conectar repositorio a Vercel
-2. Configurar directorio: `backend`
-3. Configurar variables de entorno
-4. Configurar build command: `npm install`
+**Pasos:**
+
+1. Instalar Vercel CLI: `npm install -g vercel`
+2. Configurar APIs (Gemini, Hugging Face, Google Search)
+3. Ejecutar: `vercel` desde la raíz del proyecto
+4. Configurar variables de entorno en el dashboard
+
+Consulta la guía completa en [DEPLOY-VERCEL.md](./DEPLOY-VERCEL.md)
+
+### Despliegue Local
+
+```bash
+# Frontend
+npm run dev
+
+# Backend (en otra terminal)
+cd backend
+npm run dev
+```
 
 ### Docker (Opcional)
 
