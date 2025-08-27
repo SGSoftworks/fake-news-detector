@@ -631,6 +631,12 @@ const calculateCredibilityScore = (results) => {
     score += results.externalVerification.overallVerification * 0.3;
   }
 
+  // Asegurar que el score esté en un rango razonable
+  // Si no hay verificación externa, ser más conservador
+  if (!results.sourceAnalysis && results.relatedArticles.length === 0) {
+    score = Math.min(score, 70); // Máximo 70% sin verificación externa
+  }
+
   return Math.max(0, Math.min(100, Math.round(score)));
 };
 
@@ -641,12 +647,14 @@ const generateRecommendations = (results) => {
     recommendations.push(
       "⚠️ Alta probabilidad de ser información falsa o engañosa"
     );
-  } else if (results.credibilityScore < 60) {
+  } else if (results.credibilityScore < 50) {
     recommendations.push(
       "⚠️ Información con baja credibilidad, verificar fuentes"
     );
-  } else if (results.credibilityScore < 80) {
-    recommendations.push("✅ Información con credibilidad moderada");
+  } else if (results.credibilityScore < 70) {
+    recommendations.push("⚠️ Información con credibilidad moderada, verificar");
+  } else if (results.credibilityScore < 85) {
+    recommendations.push("✅ Información con buena credibilidad");
   } else {
     recommendations.push("✅ Información con alta credibilidad");
   }

@@ -74,11 +74,25 @@ const Analysis = () => {
   };
 
   const getConfidenceLevel = (confidence) => {
-    if (confidence >= 80) return "MUY ALTA";
-    if (confidence >= 60) return "ALTA";
-    if (confidence >= 40) return "MEDIA";
-    if (confidence >= 20) return "BAJA";
+    if (confidence >= 85) return "MUY ALTA";
+    if (confidence >= 70) return "ALTA";
+    if (confidence >= 50) return "MEDIA";
+    if (confidence >= 30) return "BAJA";
     return "MUY BAJA";
+  };
+
+  // Función para asegurar consistencia entre confidence y credibilityScore
+  const getConsistentCredibilityScore = (result) => {
+    if (!result.verification || !result.verification.credibilityScore) {
+      return result.confidence || 0;
+    }
+
+    // Si el análisis indica que es fake, ajustar el credibilityScore
+    if (result.isFake) {
+      return Math.min(result.verification.credibilityScore, 60);
+    } else {
+      return Math.max(result.verification.credibilityScore, 40);
+    }
   };
 
   return (
@@ -367,14 +381,14 @@ const Analysis = () => {
                       Credibilidad General
                     </span>
                     <span className="text-lg font-bold text-blue-600">
-                      {result.verification.credibilityScore}%
+                      {getConsistentCredibilityScore(result)}%
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
                       className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                       style={{
-                        width: `${result.verification.credibilityScore}%`,
+                        width: `${getConsistentCredibilityScore(result)}%`,
                       }}
                     />
                   </div>

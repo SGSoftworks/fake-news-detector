@@ -453,10 +453,20 @@ const combineAllAnalysis = (results, verificationResults, isUrl) => {
   let finalConfidence = Math.round(totalConfidence / totalWeight);
 
   if (verificationResults) {
-    const verificationFactor = verificationResults.credibilityScore / 100;
+    // Calcular si es fake basado en la confianza inicial
+    const initialIsFake = finalConfidence > config.analysis.thresholds.fake;
+
+    // Ajustar el credibilityScore basado en el análisis de IA
+    const adjustedCredibilityScore = initialIsFake
+      ? Math.min(verificationResults.credibilityScore, 60) // Si es fake, máximo 60%
+      : Math.max(verificationResults.credibilityScore, 40); // Si es verídica, mínimo 40%
+
     finalConfidence = Math.round(
-      finalConfidence * 0.7 + verificationResults.credibilityScore * 0.3
+      finalConfidence * 0.7 + adjustedCredibilityScore * 0.3
     );
+
+    // Actualizar el credibilityScore para que sea consistente
+    verificationResults.credibilityScore = adjustedCredibilityScore;
 
     // Agregar factores de verificación
     if (verificationResults.recommendations) {
