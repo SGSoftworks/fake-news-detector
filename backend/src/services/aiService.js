@@ -889,14 +889,23 @@ const generateDetailedExplanation = (
     verificationResults &&
     verificationResults.relatedArticles &&
     verificationResults.relatedArticles.length > 0
-  )
-    if (
-      verificationResults &&
-      verificationResults.recommendations &&
-      verificationResults.recommendations.length > 0
-    ) {
+  ) {
+    // Artículos relacionados encontrados
+    explanation += `ARTÍCULOS RELACIONADOS ENCONTRADOS:\n`;
+    verificationResults.relatedArticles.slice(0, 3).forEach((article, index) => {
+      explanation += `${index + 1}. ${article.title || article.url}\n`;
+    });
+    explanation += "\n";
+  }
+
+  // Recomendaciones
+  if (
+    verificationResults &&
+    verificationResults.recommendations &&
+    verificationResults.recommendations.length > 0
+  ) {
       // Recomendaciones
-      explanation += `💡 RECOMENDACIONES:\n`;
+      explanation += `RECOMENDACIONES:\n`;
       verificationResults.recommendations.forEach((rec, index) => {
         explanation += `${index + 1}. ${rec}\n`;
       });
