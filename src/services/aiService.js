@@ -2,8 +2,25 @@
 // Conecta con el backend real para análisis
 
 // Configuración de la URL del backend
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api";
+// En producción (Vercel), usar /api ya que backend y frontend están en el mismo dominio
+// En desarrollo, usar localhost:3001
+const getApiBaseUrl = () => {
+  // Si está configurada explícitamente, usarla
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
+  // Auto-detectar según el entorno
+  const isDevelopment = import.meta.env.DEV;
+  if (isDevelopment) {
+    return "http://localhost:3001/api";
+  } else {
+    // En producción, usar ruta relativa (mismo dominio)
+    return "/api";
+  }
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Verificar si estamos en desarrollo
 const isDevelopment = import.meta.env.DEV;
