@@ -357,16 +357,58 @@ const Analysis = () => {
               </h4>
               
               {result.explanation && (
-                <div className="mb-4 p-5 bg-blue-50 border-l-4 border-blue-400 rounded-lg">
+                <div className="mb-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl">
                   <div className="flex items-start">
                     <div className="flex-shrink-0">
-                      <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <Search className="h-6 w-6 text-blue-600 mt-1" />
                     </div>
-                    <div className="ml-3">
-                      <h5 className="font-semibold text-blue-900 mb-2">Resumen del Análisis</h5>
-                      <p className="text-blue-800 leading-relaxed">
-                        {result.explanation}
-                      </p>
+                    <div className="ml-4 flex-1">
+                      <h5 className="font-bold text-blue-900 mb-3 text-lg">Análisis Principal de IA</h5>
+                      <div className="prose prose-blue max-w-none">
+                        <p className="text-blue-800 leading-relaxed text-base">
+                          {result.explanation}
+                        </p>
+                      </div>
+                      
+                      {/* Web Verification Results */}
+                      {result.webVerification && (
+                        <div className="mt-4 pt-4 border-t border-blue-200">
+                          <h6 className="font-semibold text-blue-900 mb-2 flex items-center">
+                            <Globe className="h-4 w-4 mr-2" />
+                            Verificación Web
+                          </h6>
+                          <div className="space-y-2">
+                            {result.webVerification.sourcesFound && result.webVerification.sourcesFound.length > 0 && (
+                              <div className="text-sm">
+                                <span className="font-medium text-blue-800">Fuentes encontradas:</span>
+                                <ul className="list-disc list-inside ml-2 text-blue-700">
+                                  {result.webVerification.sourcesFound.slice(0, 3).map((source, idx) => (
+                                    <li key={idx}>{source}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {result.webVerification.mediaPresence && (
+                              <div className="text-sm">
+                                <span className="font-medium text-blue-800">Presencia en medios:</span>
+                                <span className="ml-2 text-blue-700">{result.webVerification.mediaPresence}</span>
+                              </div>
+                            )}
+                            
+                            {result.webVerification.contradictingSources && result.webVerification.contradictingSources.length > 0 && (
+                              <div className="text-sm">
+                                <span className="font-medium text-red-800">Fuentes que contradicen:</span>
+                                <ul className="list-disc list-inside ml-2 text-red-700">
+                                  {result.webVerification.contradictingSources.slice(0, 2).map((source, idx) => (
+                                    <li key={idx}>{source}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -378,29 +420,90 @@ const Analysis = () => {
                     <TrendingUp className="mr-2 h-4 w-4 text-gray-600" />
                     Factores Evaluados
                   </h5>
-                  {result.factors.slice(0, 5).map((factor, index) => (
-                    <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
-                      <div className="flex items-start space-x-3">
-                        <div className="flex-shrink-0">
-                          {factor.impact === "high" && <AlertTriangle className="h-4 w-4 text-red-500 mt-1" />}
-                          {factor.impact === "medium" && <AlertCircle className="h-4 w-4 text-yellow-500 mt-1" />}
-                          {factor.impact === "low" && <CheckCircle className="h-4 w-4 text-green-500 mt-1" />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-1">
-                            <h6 className="font-medium text-gray-900 text-sm">{factor.name}</h6>
-                            <span className={`text-xs px-2 py-1 rounded-full ${
-                              factor.impact === "high" ? "bg-red-100 text-red-800" :
-                              factor.impact === "medium" ? "bg-yellow-100 text-yellow-800" : 
-                              "bg-green-100 text-green-800"
-                            }`}>
-                              {factor.impact === "high" ? "Alto impacto" : 
-                               factor.impact === "medium" ? "Impacto medio" : "Bajo impacto"}
-                            </span>
+                  {result.factors.slice(0, 6).map((factor, index) => (
+                    <div key={index} className="bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all duration-200">
+                      <div className="p-5">
+                        <div className="flex items-start space-x-4">
+                          <div className="flex-shrink-0">
+                            {factor.impact === "high" && <AlertTriangle className="h-5 w-5 text-red-500 mt-1" />}
+                            {factor.impact === "medium" && <AlertCircle className="h-5 w-5 text-yellow-500 mt-1" />}
+                            {factor.impact === "low" && <CheckCircle className="h-5 w-5 text-green-500 mt-1" />}
                           </div>
-                          <p className="text-sm text-gray-600 leading-relaxed">
-                            {factor.description}
-                          </p>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between mb-2">
+                              <h6 className="font-semibold text-gray-900">{factor.name}</h6>
+                              <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+                                factor.impact === "high" ? "bg-red-100 text-red-800" :
+                                factor.impact === "medium" ? "bg-yellow-100 text-yellow-800" : 
+                                "bg-green-100 text-green-800"
+                              }`}>
+                                {factor.impact === "high" ? "Alto impacto" : 
+                                 factor.impact === "medium" ? "Impacto medio" : "Bajo impacto"}
+                              </span>
+                            </div>
+                            <p className="text-gray-700 leading-relaxed mb-3">
+                              {factor.description}
+                            </p>
+                            
+                            {/* Información adicional específica para diferentes tipos */}
+                            {factor.webValidation && (
+                              <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center mb-1">
+                                  <Globe className="h-3 w-3 text-gray-500 mr-1" />
+                                  <span className="text-xs font-medium text-gray-700">Validación Web:</span>
+                                </div>
+                                <p className="text-xs text-gray-600">{factor.webValidation}</p>
+                              </div>
+                            )}
+                            
+                            {factor.similarSources && factor.similarSources.length > 0 && (
+                              <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                                <div className="flex items-center mb-1">
+                                  <LinkIcon className="h-3 w-3 text-blue-500 mr-1" />
+                                  <span className="text-xs font-medium text-blue-700">Fuentes similares:</span>
+                                </div>
+                                <div className="text-xs text-blue-600 space-y-1">
+                                  {factor.similarSources.slice(0, 3).map((source, idx) => (
+                                    <div key={idx}>• {source}</div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {factor.aiIndicators && factor.aiIndicators.length > 0 && (
+                              <div className="mt-3 p-3 bg-orange-50 rounded-lg">
+                                <div className="flex items-center mb-1">
+                                  <Bot className="h-3 w-3 text-orange-500 mr-1" />
+                                  <span className="text-xs font-medium text-orange-700">Indicadores de IA:</span>
+                                </div>
+                                <div className="text-xs text-orange-600 space-y-1">
+                                  {factor.aiIndicators.slice(0, 3).map((indicator, idx) => (
+                                    <div key={idx}>• {indicator}</div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {factor.technicalDetails && (
+                              <div className="mt-3 p-3 bg-purple-50 rounded-lg">
+                                <div className="flex items-center mb-1">
+                                  <Info className="h-3 w-3 text-purple-500 mr-1" />
+                                  <span className="text-xs font-medium text-purple-700">Detalles técnicos:</span>
+                                </div>
+                                <div className="text-xs text-purple-600">
+                                  {factor.technicalDetails.model && (
+                                    <div>Modelo: {factor.technicalDetails.model}</div>
+                                  )}
+                                  {factor.technicalDetails.sentimentScore && (
+                                    <div>Puntuación: {factor.technicalDetails.sentimentScore}%</div>
+                                  )}
+                                  {factor.technicalDetails.classification && (
+                                    <div>Clasificación: {factor.technicalDetails.classification}</div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>

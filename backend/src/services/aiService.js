@@ -309,9 +309,8 @@ const analyzeWithHuggingFace = async text => {
   }
 };
 
-// Procesar respuesta de Hugging Face
+// Procesar respuesta de Hugging Face con análisis avanzado
 const processHuggingFaceResponse = data => {
-  // La respuesta puede variar según el modelo
   let sentiment = "neutral";
   let confidence = 50;
 
@@ -327,7 +326,7 @@ const processHuggingFaceResponse = data => {
     }
   }
 
-  // Convertir sentimiento a análisis de fake news
+  // Determinar si es fake basado en sentimiento
   const isFake = sentiment.includes("negative") || sentiment.includes("toxic");
   const fakeConfidence = isFake ? confidence : 100 - confidence;
 
@@ -336,12 +335,22 @@ const processHuggingFaceResponse = data => {
     confidence: fakeConfidence,
     factors: [
       {
-        name: "Análisis de Sentimiento",
-        description: `Sentimiento detectado: ${sentiment}`,
-        impact: "medium",
+        name: "Análisis de Sentimiento (HuggingFace)",
+        description: `Sentimiento ${sentiment} detectado con ${confidence}% de precisión usando modelo BERT multilingual. ${isFake ? 'Sentimiento negativo puede indicar contenido manipulador.' : 'Sentimiento neutral/positivo sugiere contenido objetivo.'}`,
+        impact: isFake ? "high" : "medium",
+        technicalDetails: {
+          model: "BERT Multilingual Sentiment",
+          sentimentScore: confidence,
+          classification: sentiment
+        }
       },
     ],
-    explanation: `El modelo de Hugging Face detectó un sentimiento ${sentiment} con ${confidence}% de confianza.`,
+    explanation: `HuggingFace (BERT) analizó el sentimiento del texto y detectó ${sentiment} con ${confidence}% de confianza. ${isFake ? 'El sentimiento negativo/tóxico puede indicar contenido manipulador o sesgado típico de desinformación.' : 'El sentimiento neutral/positivo es consistente con contenido informativo objetivo.'}`,
+    technicalSummary: {
+      sentimentAnalysis: { sentiment, confidence },
+      modelUsed: "nlptown/bert-base-multilingual-uncased-sentiment",
+      overallAssessment: isFake ? "Sentimiento sospechoso" : "Sentimiento normal"
+    }
   };
 };
 
@@ -354,48 +363,75 @@ const analyzeWithGemini = async text => {
   try {
     console.log("🔍 Analizando con Google Gemini 2.0 Flash...");
 
-    const systemPrompt = `Eres un verificador de noticias profesional que ayuda a usuarios comunes a entender la credibilidad de la información.
+    const systemPrompt = `Eres un experto verificador de noticias con acceso a capacidades de búsqueda web. Tu trabajo es analizar información y validarla contra fuentes reales en internet.
 
-Tu objetivo es proporcionar análisis claros y comprensibles, sin usar términos técnicos complicados.
+MISIÓN: Detectar desinformación, noticias falsas, y contenido generado por IA mediante verificación cruzada con fuentes web confiables.
 
-INSTRUCCIONES DE ANÁLISIS:
-1. Evalúa la credibilidad del contenido de forma objetiva
-2. Explica tu razonamiento en lenguaje sencillo
-3. Identifica elementos específicos que influyen en tu evaluación
-4. Proporciona recomendaciones prácticas
+PROCESO DE ANÁLISIS OBLIGATORIO:
+1. **VERIFICACIÓN DE FUENTES**: Analiza si las fuentes mencionadas existen y son confiables
+2. **BÚSQUEDA DE SIMILITUD**: Busca información similar en medios reconocidos
+3. **DETECCIÓN DE IA**: Identifica patrones típicos de contenido generado artificialmente
+4. **FACT-CHECKING**: Verifica hechos, fechas, personas y eventos mencionados
+5. **ANÁLISIS DE CREDIBILIDAD**: Evalúa la reputación de las fuentes citadas
 
-FACTORES A EVALUAR:
-- Presencia y calidad de las fuentes mencionadas
-- Estilo de redacción (objetivo vs. sensacionalista)
-- Coherencia de la información presentada
-- Detalles verificables (fechas, lugares, personas)
-- Tono emocional del contenido
+DETECCIÓN DE CONTENIDO IA - SEÑALES CRÍTICAS:
+- Texto demasiado perfecto o formulaico
+- Falta de detalles específicos verificables
+- Uso repetitivo de frases o estructuras
+- Información genérica sin contexto local
+- Ausencia de errores humanos naturales
+- Patrones de lenguaje artificial
+
+VERIFICACIÓN WEB OBLIGATORIA:
+- Buscar la noticia en medios establecidos (BBC, Reuters, AP, etc.)
+- Verificar existencia de personas/organizaciones mencionadas
+- Confirmar fechas y eventos contra registros públicos
+- Buscar desmentidos o fact-checks existentes
 
 FORMATO DE RESPUESTA (JSON válido únicamente):
 {
   "isFake": boolean,
   "confidence": number (0-100),
-  "explanation": "Explicación clara y simple sobre por qué el contenido es o no confiable. Usa ejemplos específicos del texto analizado.",
+  "explanation": "Explicación detallada basada en verificación web. Menciona qué fuentes consultaste y qué encontraste.",
   "factors": [
     {
-      "name": "Nombre descriptivo del factor",
-      "description": "Explicación sencilla de lo que encontraste",
-      "impact": "high/medium/low"
+      "name": "Verificación de fuentes",
+      "description": "Resultado de búsqueda de las fuentes mencionadas en el texto",
+      "impact": "high/medium/low",
+      "webValidation": "URL o resultado de búsqueda específico"
+    },
+    {
+      "name": "Similitud con noticias verificadas", 
+      "description": "Comparación con noticias reales en medios establecidos",
+      "impact": "high/medium/low",
+      "similarSources": ["lista de medios donde se encontró información similar"]
+    },
+    {
+      "name": "Detección de contenido IA",
+      "description": "Análisis de patrones que sugieren generación artificial",
+      "impact": "high/medium/low",
+      "aiIndicators": ["patrones específicos detectados"]
     }
   ],
+  "webVerification": {
+    "sourcesFound": ["URLs de fuentes que confirman/desmienten la información"],
+    "factCheckResults": ["Resultados de fact-checkers reconocidos"],
+    "mediaPresence": "Descripción de presencia en medios establecidos",
+    "contradictingSources": ["Fuentes que contradicen la información"]
+  },
   "recommendations": [
-    "Recomendaciones prácticas que el usuario puede seguir",
-    "Acciones específicas para verificar la información"
+    "Enlaces específicos para verificar la información",
+    "Fuentes confiables donde buscar más información",
+    "Acciones específicas basadas en hallazgos web"
   ],
-  "summary": "Resumen breve de la evaluación en 1-2 oraciones"
+  "summary": "Resumen basado en evidencia web encontrada"
 }
 
-NIVEL DE CONFIANZA:
-- 90-100: Muy confiable - información sólida con buenas fuentes
-- 70-89: Confiable - información creíble con algunas fuentes
-- 50-69: Dudosa - necesita verificación adicional
-- 30-49: Poco confiable - tiene señales de alerta
-- 0-29: No confiable - probablemente falsa o engañosa`;
+INSTRUCCIONES CRÍTICAS:
+- SIEMPRE menciona fuentes web específicas encontradas o su ausencia
+- Si detectas contenido IA, explica EXACTAMENTE qué patrones encontraste
+- Proporciona URLs o nombres de medios donde verificaste la información
+- Si no encuentras la noticia en medios establecidos, es una SEÑAL DE ALERTA MAYOR`;
 
     const response = await axios.post(
       `https://generativelanguage.googleapis.com/v1beta/models/${config.gemini.model}:generateContent`,
