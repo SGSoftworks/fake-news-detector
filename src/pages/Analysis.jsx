@@ -111,19 +111,21 @@ const Analysis = () => {
   };
 
   const getVeracityStatus = (result) => {
-    if (result.isFake) {
+    // La lógica correcta: si NO es fake, entonces es confiable
+    // El porcentaje de confianza indica qué tan seguro está el sistema
+    if (!result.isFake) {
       return {
-        status: "No Confiable",
-        description: "Esta información presenta características que sugieren falta de veracidad",
-        icon: AlertTriangle,
-        color: "danger"
+        status: "Confiable",
+        description: "Esta información parece ser verdadera según nuestro análisis",
+        icon: CheckCircle,
+        color: "success"
       };
     }
     return {
-      status: "Confiable", 
-      description: "Esta información parece ser veraz según nuestro análisis",
-      icon: CheckCircle,
-      color: "success"
+      status: "No Confiable",
+      description: "Esta información presenta características que sugieren que podría ser falsa",
+      icon: AlertTriangle,
+      color: "danger"
     };
   };
 
@@ -316,10 +318,18 @@ const Analysis = () => {
                       </p>
                       <div className="flex items-center space-x-6">
                         <div>
-                          <span className="text-sm text-gray-500">Nivel de confianza</span>
+                          <span className="text-sm text-gray-500">Confianza del análisis</span>
                           <div className={`text-lg font-bold text-${credibility.color}-600`}>
                             {credibility.level} ({result.confidence || 0}%)
                           </div>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {result.confidence >= 80 
+                              ? "Porcentaje alto indica alta probabilidad de ser verdadera"
+                              : result.confidence >= 50
+                              ? "Porcentaje medio requiere verificación adicional"  
+                              : "Porcentaje bajo sugiere posible desinformación o contenido generado por IA"
+                            }
+                          </p>
                         </div>
                         {result.analysisTime && (
                           <div>
@@ -342,38 +352,61 @@ const Analysis = () => {
             {/* Key Findings */}
             <div>
               <h4 className="font-bold text-gray-900 mb-4 flex items-center">
-                <Eye className="mr-2 h-5 w-5 text-gray-600" />
-                Hallazgos Principales
+                <Search className="mr-2 h-5 w-5 text-blue-600" />
+                Análisis Detallado
               </h4>
-              <div className="space-y-3">
-                {result.explanation && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-gray-700 leading-relaxed">
-                      {result.explanation}
-                    </p>
-                  </div>
-                )}
-                
-                {result.factors && result.factors.length > 0 && (
-                  <div>
-                    <h5 className="font-semibold text-gray-800 mb-3">Factores Analizados</h5>
-                    <div className="space-y-2">
-                      {result.factors.slice(0, 5).map((factor, index) => (
-                        <div key={index} className="flex items-start space-x-3 p-3 bg-white border border-gray-200 rounded-lg">
-                          <div className={`w-2 h-2 rounded-full mt-2 ${
-                            factor.impact === "high" ? "bg-red-500" :
-                            factor.impact === "medium" ? "bg-yellow-500" : "bg-green-500"
-                          }`} />
-                          <div className="flex-1">
-                            <h6 className="font-medium text-gray-900">{factor.name}</h6>
-                            <p className="text-sm text-gray-600">{factor.description}</p>
-                          </div>
-                        </div>
-                      ))}
+              
+              {result.explanation && (
+                <div className="mb-4 p-5 bg-blue-50 border-l-4 border-blue-400 rounded-lg">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+                    </div>
+                    <div className="ml-3">
+                      <h5 className="font-semibold text-blue-900 mb-2">Resumen del Análisis</h5>
+                      <p className="text-blue-800 leading-relaxed">
+                        {result.explanation}
+                      </p>
                     </div>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
+              
+              {result.factors && result.factors.length > 0 && (
+                <div className="space-y-3">
+                  <h5 className="font-semibold text-gray-800 mb-3 flex items-center">
+                    <TrendingUp className="mr-2 h-4 w-4 text-gray-600" />
+                    Factores Evaluados
+                  </h5>
+                  {result.factors.slice(0, 5).map((factor, index) => (
+                    <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
+                      <div className="flex items-start space-x-3">
+                        <div className="flex-shrink-0">
+                          {factor.impact === "high" && <AlertTriangle className="h-4 w-4 text-red-500 mt-1" />}
+                          {factor.impact === "medium" && <AlertCircle className="h-4 w-4 text-yellow-500 mt-1" />}
+                          {factor.impact === "low" && <CheckCircle className="h-4 w-4 text-green-500 mt-1" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <h6 className="font-medium text-gray-900 text-sm">{factor.name}</h6>
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              factor.impact === "high" ? "bg-red-100 text-red-800" :
+                              factor.impact === "medium" ? "bg-yellow-100 text-yellow-800" : 
+                              "bg-green-100 text-green-800"
+                            }`}>
+                              {factor.impact === "high" ? "Alto impacto" : 
+                               factor.impact === "medium" ? "Impacto medio" : "Bajo impacto"}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600 leading-relaxed">
+                            {factor.description}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Technical Details */}
@@ -430,12 +463,88 @@ const Analysis = () => {
             </div>
           </div>
 
+          {/* Verification Results Section */}
+          {(result.similarHeadlines && result.similarHeadlines.length > 0) || 
+           (result.relatedArticles && result.relatedArticles.length > 0) && (
+            <div className="border-t border-gray-200 pt-8">
+              <h4 className="font-bold text-gray-900 mb-6 flex items-center">
+                <Globe className="mr-2 h-5 w-5 text-purple-600" />
+                Verificación Externa y Búsquedas Relacionadas
+              </h4>
+              
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-5 mb-6">
+                <div className="flex items-start">
+                  <Shield className="h-5 w-5 text-purple-600 mt-0.5 mr-3" />
+                  <div>
+                    <h5 className="font-semibold text-purple-900 mb-2">Estado de Verificación</h5>
+                    <p className="text-purple-800 text-sm">
+                      Hemos buscado esta información en múltiples fuentes para verificar su veracidad. 
+                      {result.similarHeadlines && result.similarHeadlines.length > 0 
+                        ? ` Encontramos ${result.similarHeadlines.length} artículos similares para comparar.`
+                        : " No se encontraron artículos idénticos, lo que podría indicar información nueva o única."
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {result.similarHeadlines && result.similarHeadlines.length > 0 && (
+                <div className="mb-8">
+                  <h5 className="font-semibold text-gray-800 mb-4 flex items-center">
+                    <TrendingUp className="mr-2 h-4 w-4 text-blue-600" />
+                    Noticias Similares Encontradas ({result.similarHeadlines.length})
+                  </h5>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {result.similarHeadlines.slice(0, 4).map((headline, index) => (
+                      <div key={index} className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
+                        <div className="flex justify-between items-start mb-2">
+                          <h6 className="font-medium text-gray-900 text-sm leading-tight flex-1">
+                            {headline.title || headline.headline}
+                          </h6>
+                          {headline.url && (
+                            <a
+                              href={headline.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="ml-2 text-blue-600 hover:text-blue-800 flex-shrink-0"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          )}
+                        </div>
+                        {headline.source && (
+                          <div className="flex items-center mb-2">
+                            <Globe className="h-3 w-3 text-gray-400 mr-1" />
+                            <span className="text-xs text-gray-500">{headline.source}</span>
+                          </div>
+                        )}
+                        {headline.similarity && (
+                          <div className="flex items-center">
+                            <div className="flex-1 bg-gray-200 rounded-full h-1.5 mr-2">
+                              <div 
+                                className="bg-blue-600 h-1.5 rounded-full" 
+                                style={{ width: `${headline.similarity * 100}%` }}
+                              />
+                            </div>
+                            <span className="text-xs text-gray-600">
+                              {Math.round(headline.similarity * 100)}% similar
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Related Articles Section */}
           {result.relatedArticles && result.relatedArticles.length > 0 && (
             <div className="border-t border-gray-200 pt-8">
               <h4 className="font-bold text-gray-900 mb-4 flex items-center">
                 <BookOpen className="mr-2 h-5 w-5 text-gray-600" />
-                Artículos Relacionados Encontrados
+                Artículos Adicionales Relacionados
               </h4>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {result.relatedArticles.slice(0, 6).map((article, index) => (
