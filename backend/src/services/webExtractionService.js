@@ -191,7 +191,7 @@ class WebExtractionService {
         protocol: urlObj.protocol,
         path: urlObj.pathname,
       };
-    } catch (error) {
+    } catch {
       return { domain: "unknown", protocol: "unknown", path: "/" };
     }
   }
@@ -210,7 +210,7 @@ class WebExtractionService {
     try {
       new URL(url);
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }

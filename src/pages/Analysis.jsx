@@ -21,11 +21,11 @@ const Analysis = () => {
   const [error, setError] = useState("");
 
   // Función para validar URLs
-  const isValidUrl = (string) => {
+  const isValidUrl = string => {
     try {
       new URL(string);
       return true;
-    } catch (_) {
+    } catch {
       return false;
     }
   };
@@ -73,24 +73,24 @@ const Analysis = () => {
     }
   };
 
-  const getResultColor = (confidence) => {
+  const getResultColor = confidence => {
     if (confidence >= 80) return "text-success-600";
     if (confidence >= 60) return "text-yellow-600";
     return "text-danger-600";
   };
 
-  const getResultIcon = (isFake) => {
+  const getResultIcon = isFake => {
     return isFake ? AlertTriangle : CheckCircle;
   };
 
-  const getResultText = (result) => {
+  const getResultText = result => {
     if (result.verdict) {
       return result.verdict;
     }
     return result.isFake ? "NO VERÍDICA" : "VERÍDICA";
   };
 
-  const getResultDescription = (result) => {
+  const getResultDescription = result => {
     if (result.explanation) {
       return result.explanation;
     }
@@ -106,7 +106,7 @@ const Analysis = () => {
     )}. Sin embargo, siempre es buena práctica verificar múltiples fuentes.`;
   };
 
-  const getConfidenceLevel = (confidence) => {
+  const getConfidenceLevel = confidence => {
     if (confidence >= 85) return "MUY ALTA";
     if (confidence >= 70) return "ALTA";
     if (confidence >= 50) return "MEDIA";
@@ -115,7 +115,7 @@ const Analysis = () => {
   };
 
   // Función para asegurar consistencia entre confidence y credibilityScore
-  const getConsistentCredibilityScore = (result) => {
+  const getConsistentCredibilityScore = result => {
     if (!result.verification || !result.verification.credibilityScore) {
       return result.confidence || 0;
     }
@@ -157,7 +157,7 @@ const Analysis = () => {
                   name="inputType"
                   value="text"
                   checked={inputType === "text"}
-                  onChange={(e) => setInputType(e.target.value)}
+                  onChange={e => setInputType(e.target.value)}
                   className="mr-2"
                 />
                 <span className="text-sm text-gray-600">Texto</span>
@@ -169,7 +169,7 @@ const Analysis = () => {
                   name="inputType"
                   value="url"
                   checked={inputType === "url"}
-                  onChange={(e) => setInputType(e.target.value)}
+                  onChange={e => setInputType(e.target.value)}
                   className="ml-2"
                 />
               </label>
@@ -180,7 +180,7 @@ const Analysis = () => {
             <textarea
               id="newsInput"
               value={newsText}
-              onChange={(e) => setNewsText(e.target.value)}
+              onChange={e => setNewsText(e.target.value)}
               placeholder="Pega aquí el texto de la noticia que quieres analizar..."
               className="input-field h-32 resize-none"
               disabled={isAnalyzing}
@@ -190,7 +190,7 @@ const Analysis = () => {
               type="url"
               id="newsInput"
               value={newsText}
-              onChange={(e) => setNewsText(e.target.value)}
+              onChange={e => setNewsText(e.target.value)}
               placeholder="https://ejemplo.com/noticia-para-verificar"
               className="input-field"
               disabled={isAnalyzing}
@@ -424,10 +424,10 @@ const Analysis = () => {
                           headline.semanticScore >= 80
                             ? "bg-green-100 text-green-800"
                             : headline.semanticScore >= 60
-                            ? "bg-yellow-100 text-yellow-800"
-                            : headline.semanticScore >= 40
-                            ? "bg-orange-100 text-orange-800"
-                            : "bg-gray-100 text-gray-800"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : headline.semanticScore >= 40
+                                ? "bg-orange-100 text-orange-800"
+                                : "bg-gray-100 text-gray-800"
                         }`}
                       >
                         {headline.semanticScore}% similitud
@@ -511,8 +511,8 @@ const Analysis = () => {
                         factor.impact === "high"
                           ? "bg-danger-500"
                           : factor.impact === "medium"
-                          ? "bg-yellow-500"
-                          : "bg-success-500"
+                            ? "bg-yellow-500"
+                            : "bg-success-500"
                       }`}
                     />
                     <div className="flex-1 min-w-0">
@@ -525,10 +525,10 @@ const Analysis = () => {
                             factor.source === "gemini"
                               ? "bg-blue-100 text-blue-800"
                               : factor.source === "huggingface"
-                              ? "bg-purple-100 text-purple-800"
-                              : factor.source === "local"
-                              ? "bg-orange-100 text-orange-800"
-                              : "bg-green-100 text-green-800"
+                                ? "bg-purple-100 text-purple-800"
+                                : factor.source === "local"
+                                  ? "bg-orange-100 text-orange-800"
+                                  : "bg-green-100 text-green-800"
                           }`}
                         >
                           {factor.aiType || factor.source}

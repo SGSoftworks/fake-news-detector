@@ -6,7 +6,7 @@ const { verifyNews } = require("./verificationService");
 const config = getAnalysisConfig();
 
 // Función principal de análisis con múltiples APIs
-const analyzeText = async (text) => {
+const analyzeText = async text => {
   try {
     console.log("🤖 Iniciando análisis avanzado con verificación externa...");
 
@@ -28,11 +28,11 @@ const analyzeText = async (text) => {
     if (config.huggingface.enabled && config.analysis.autoEnable.huggingface) {
       promises.push(
         analyzeWithHuggingFace(text)
-          .then((result) => {
+          .then(result => {
             results.huggingface = result;
             console.log("✅ Hugging Face analysis completed");
           })
-          .catch((error) => {
+          .catch(error => {
             console.warn("❌ Hugging Face API error:", error.message);
             results.huggingface = null;
           })
@@ -43,11 +43,11 @@ const analyzeText = async (text) => {
     if (config.gemini.enabled && config.analysis.autoEnable.gemini) {
       promises.push(
         analyzeWithGemini(text)
-          .then((result) => {
+          .then(result => {
             results.gemini = result;
             console.log("✅ Google Gemini analysis completed");
           })
-          .catch((error) => {
+          .catch(error => {
             console.warn("❌ Google Gemini API error:", error.message);
             results.gemini = null;
           })
@@ -62,11 +62,11 @@ const analyzeText = async (text) => {
     ) {
       promises.push(
         verifyNews(text, isUrl)
-          .then((result) => {
+          .then(result => {
             verificationResults = result;
             console.log("✅ External verification completed");
           })
-          .catch((error) => {
+          .catch(error => {
             console.warn("❌ Verificación externa error:", error.message);
             verificationResults = null;
           })
@@ -90,7 +90,7 @@ const analyzeText = async (text) => {
 };
 
 // Análisis local mejorado
-const performLocalAnalysis = (text) => {
+const performLocalAnalysis = text => {
   const lowerText = text.toLowerCase();
   const factors = [];
   let fakeScore = 0;
@@ -115,7 +115,7 @@ const performLocalAnalysis = (text) => {
     "desastre",
   ];
 
-  const sensationalCount = sensationalWords.filter((word) =>
+  const sensationalCount = sensationalWords.filter(word =>
     lowerText.includes(word)
   ).length;
 
@@ -152,7 +152,7 @@ const performLocalAnalysis = (text) => {
     "rápido",
     "pronto",
   ];
-  const urgencyCount = urgencyWords.filter((word) =>
+  const urgencyCount = urgencyWords.filter(word =>
     lowerText.includes(word)
   ).length;
 
@@ -179,7 +179,7 @@ const performLocalAnalysis = (text) => {
     /anuncia/i,
     /comunica/i,
   ];
-  const hasSources = sourcePatterns.some((pattern) => pattern.test(text));
+  const hasSources = sourcePatterns.some(pattern => pattern.test(text));
 
   if (!hasSources) {
     factors.push({
@@ -206,14 +206,14 @@ const performLocalAnalysis = (text) => {
   const words = text
     .toLowerCase()
     .split(/\s+/)
-    .filter((word) => word.length > 3);
+    .filter(word => word.length > 3);
   const wordCount = {};
-  words.forEach((word) => {
+  words.forEach(word => {
     wordCount[word] = (wordCount[word] || 0) + 1;
   });
 
   const repeatedWords = Object.entries(wordCount).filter(
-    ([word, count]) => count > 3
+    ([, count]) => count > 3
   ).length;
 
   if (repeatedWords > 2) {
@@ -275,7 +275,7 @@ const performLocalAnalysis = (text) => {
 };
 
 // Análisis con Hugging Face
-const analyzeWithHuggingFace = async (text) => {
+const analyzeWithHuggingFace = async text => {
   if (!config.huggingface.enabled) {
     throw new Error("Hugging Face API no está habilitada");
   }
@@ -311,7 +311,7 @@ const analyzeWithHuggingFace = async (text) => {
 };
 
 // Procesar respuesta de Hugging Face
-const processHuggingFaceResponse = (data, text) => {
+const processHuggingFaceResponse = data => {
   // La respuesta puede variar según el modelo
   let sentiment = "neutral";
   let confidence = 50;
@@ -347,7 +347,7 @@ const processHuggingFaceResponse = (data, text) => {
 };
 
 // Análisis con Google Gemini API - Versión Mejorada y Más Agresiva
-const analyzeWithGemini = async (text) => {
+const analyzeWithGemini = async text => {
   if (!config.gemini.enabled) {
     throw new Error("Google Gemini API no está habilitada");
   }
@@ -450,7 +450,7 @@ const analyzeWithGemini = async (text) => {
 // Combinar todos los análisis disponibles con IA mejorada
 const combineAllAnalysis = (results, verificationResults, isUrl) => {
   const availableResults = Object.entries(results)
-    .filter(([key, result]) => result !== null)
+    .filter(([, result]) => result !== null)
     .map(([key, result]) => ({ source: key, ...result }));
 
   if (availableResults.length === 0) {
@@ -474,7 +474,7 @@ const combineAllAnalysis = (results, verificationResults, isUrl) => {
     local: 0.1, // 10% - Análisis básico
   };
 
-  availableResults.forEach((result) => {
+  availableResults.forEach(result => {
     const weight = weights[result.source] || 0.1;
     totalConfidence += result.confidence * weight;
     totalWeight += weight;
@@ -482,7 +482,7 @@ const combineAllAnalysis = (results, verificationResults, isUrl) => {
     // Agregar factores con fuente identificada
     if (result.factors) {
       allFactors.push(
-        ...result.factors.map((factor) => ({
+        ...result.factors.map(factor => ({
           ...factor,
           source: result.source,
           aiType: getAIType(result.source),
@@ -517,7 +517,7 @@ const combineAllAnalysis = (results, verificationResults, isUrl) => {
 
     // Agregar factores de verificación
     if (verificationResults.recommendations) {
-      verificationResults.recommendations.forEach((rec) => {
+      verificationResults.recommendations.forEach(rec => {
         allFactors.push({
           name: "Verificación Externa",
           description: rec,
@@ -536,7 +536,7 @@ const combineAllAnalysis = (results, verificationResults, isUrl) => {
   const humanAnalysis = calculateHumanAnalysis(verificationResults);
 
   // Determinar modelo usado
-  const modelsUsed = availableResults.map((r) => r.source).join(" + ");
+  const modelsUsed = availableResults.map(r => r.source).join(" + ");
   const modelName = verificationResults
     ? `IA Avanzada + Verificación Humana (${modelsUsed})`
     : `IA Avanzada (${modelsUsed})`;
@@ -559,8 +559,8 @@ const combineAllAnalysis = (results, verificationResults, isUrl) => {
     model: modelName,
     details: {
       ...details,
-      sources: availableResults.map((r) => r.source),
-      individualResults: availableResults.map((r) => ({
+      sources: availableResults.map(r => r.source),
+      individualResults: availableResults.map(r => ({
         source: r.source,
         confidence: r.confidence,
         isFake: r.isFake,
@@ -591,7 +591,7 @@ const combineAllAnalysis = (results, verificationResults, isUrl) => {
 };
 
 // Función para obtener el tipo de IA
-const getAIType = (source) => {
+const getAIType = source => {
   switch (source) {
     case "gemini":
       return "IA Avanzada (Gemini)";
@@ -608,15 +608,15 @@ const getAIType = (source) => {
 
 // Calcular análisis de IA
 const calculateAIAnalysis = (availableResults, allFactors) => {
-  const aiFactors = allFactors.filter((f) => f.source !== "verification");
+  const aiFactors = allFactors.filter(f => f.source !== "verification");
   const aiConfidence =
     availableResults.reduce((sum, result) => {
       const weight =
         result.source === "gemini"
           ? 0.6
           : result.source === "huggingface"
-          ? 0.3
-          : 0.1;
+            ? 0.3
+            : 0.1;
       return sum + result.confidence * weight;
     }, 0) /
     availableResults.reduce((sum, result) => {
@@ -624,21 +624,21 @@ const calculateAIAnalysis = (availableResults, allFactors) => {
         result.source === "gemini"
           ? 0.6
           : result.source === "huggingface"
-          ? 0.3
-          : 0.1;
+            ? 0.3
+            : 0.1;
       return sum + weight;
     }, 0);
 
   return {
     confidence: Math.round(aiConfidence),
     factors: aiFactors.length,
-    sources: availableResults.map((r) => getAIType(r.source)),
+    sources: availableResults.map(r => getAIType(r.source)),
     percentage: Math.round((aiConfidence / 100) * 70), // 70% del análisis total
   };
 };
 
 // Calcular análisis humano
-const calculateHumanAnalysis = (verificationResults) => {
+const calculateHumanAnalysis = verificationResults => {
   if (!verificationResults) {
     return {
       confidence: 0,
@@ -694,19 +694,19 @@ const generateDetailedExplanation = (
 
     // Agrupar factores por tipo de IA
     const geminiFactors = factors.filter(
-      (f) =>
+      f =>
         f.source === "gemini" && (f.impact === "high" || f.impact === "medium")
     );
     const huggingfaceFactors = factors.filter(
-      (f) =>
+      f =>
         f.source === "huggingface" &&
         (f.impact === "high" || f.impact === "medium")
     );
     const localFactors = factors.filter(
-      (f) =>
+      f =>
         f.source === "local" && (f.impact === "high" || f.impact === "medium")
     );
-    const humanFactors = factors.filter((f) => f.source === "verification");
+    const humanFactors = factors.filter(f => f.source === "verification");
 
     if (geminiFactors.length > 0) {
       explanation += `🤖 IA Avanzada (Gemini):\n`;
@@ -784,7 +784,7 @@ const generateDetailedExplanation = (
 };
 
 // Función para obtener nivel de confianza
-const getConfidenceLevel = (confidence) => {
+const getConfidenceLevel = confidence => {
   if (confidence >= 80) return "MUY ALTA";
   if (confidence >= 60) return "ALTA";
   if (confidence >= 40) return "MEDIA";

@@ -8,9 +8,16 @@
     "build": "vite build",
     "build:prod": "vite build --mode production",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "preview": "vite preview",
     "deploy:netlify": "npm run build:prod",
-    "vercel-build": "vite build"
+    "vercel-build": "vite build",
+    "clean": "rm -rf dist node_modules package-lock.json && npm install",
+    "analyze": "npm run build && npx vite-bundle-analyzer dist",
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
+    "backend:dev": "cd backend && npm run dev",
+    "backend:start": "cd backend && npm start",
+    "backend:lint": "cd backend && npm run lint"
   },
   "dependencies": {
     "axios": "^1.11.0",
@@ -30,7 +37,10 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
     "postcss": "^8.5.6",
+    "prettier": "^3.2.5",
     "tailwindcss": "^3.4.17",
-    "vite": "^7.1.2"
+    "terser": "^5.29.2",
+    "vite": "^7.1.2",
+    "vite-bundle-analyzer": "^0.7.0"
   }
 }

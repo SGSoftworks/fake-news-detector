@@ -9,7 +9,7 @@ const rl = readline.createInterface({
 });
 
 function question(prompt) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     rl.question(prompt, resolve);
   });
 }
@@ -45,7 +45,6 @@ async function setupAPIs() {
 
   const choice = await question("Selecciona una opción (1-4): ");
 
-  let openaiKey = "";
   let huggingfaceKey = "";
   let perspectiveKey = "";
 

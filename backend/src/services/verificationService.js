@@ -69,7 +69,7 @@ const analyzeSource = async (text, isUrl) => {
 };
 
 // Analizar fuente si es URL
-const analyzeUrlSource = async (url) => {
+const analyzeUrlSource = async url => {
   try {
     // Extraer dominio
     const domain = extractDomain(url);
@@ -95,7 +95,7 @@ const analyzeUrlSource = async (url) => {
 };
 
 // Analizar fuente si es texto
-const analyzeTextSource = async (text) => {
+const analyzeTextSource = async text => {
   try {
     // Extraer posibles fuentes mencionadas
     const mentionedSources = extractMentionedSources(text);
@@ -122,7 +122,7 @@ const analyzeTextSource = async (text) => {
 };
 
 // Buscar artículos relacionados
-const findRelatedArticles = async (text) => {
+const findRelatedArticles = async text => {
   try {
     console.log("🔍 Buscando artículos relacionados...");
 
@@ -191,7 +191,7 @@ const findRelatedArticles = async (text) => {
 };
 
 // Verificación externa
-const performExternalVerification = async (text) => {
+const performExternalVerification = async text => {
   try {
     console.log("🔍 Realizando verificación externa...");
 
@@ -232,31 +232,31 @@ const performExternalVerification = async (text) => {
 };
 
 // Funciones auxiliares
-const extractDomain = (url) => {
+const extractDomain = url => {
   try {
     const urlObj = new URL(url);
     return urlObj.hostname;
-  } catch (error) {
+  } catch {
     return url;
   }
 };
 
-const extractMentionedSources = (text) => {
+const extractMentionedSources = text => {
   const sourcePatterns = [
-    /según\s+([^,\.]+)/gi,
-    /fuente:\s*([^,\.]+)/gi,
-    /reporta\s+([^,\.]+)/gi,
-    /informa\s+([^,\.]+)/gi,
-    /declara\s+([^,\.]+)/gi,
-    /afirma\s+([^,\.]+)/gi,
+    /según\s+([^,.]+)/gi,
+    /fuente:\s*([^,.]+)/gi,
+    /reporta\s+([^,.]+)/gi,
+    /informa\s+([^,.]+)/gi,
+    /declara\s+([^,.]+)/gi,
+    /afirma\s+([^,.]+)/gi,
   ];
 
   const sources = [];
-  sourcePatterns.forEach((pattern) => {
+  sourcePatterns.forEach(pattern => {
     const matches = text.match(pattern);
     if (matches) {
       sources.push(
-        ...matches.map((match) =>
+        ...matches.map(match =>
           match
             .replace(/^(según|fuente:|reporta|informa|declara|afirma)\s*/i, "")
             .trim()
@@ -268,7 +268,7 @@ const extractMentionedSources = (text) => {
   return [...new Set(sources)];
 };
 
-const extractTemporalInfo = (text) => {
+const extractTemporalInfo = text => {
   const datePatterns = [
     /\d{1,2}\/\d{1,2}\/\d{4}/g,
     /\d{1,2}\s+de\s+\w+\s+de\s+\d{4}/gi,
@@ -276,7 +276,7 @@ const extractTemporalInfo = (text) => {
   ];
 
   const dates = [];
-  datePatterns.forEach((pattern) => {
+  datePatterns.forEach(pattern => {
     const matches = text.match(pattern);
     if (matches) {
       dates.push(...matches);
@@ -286,21 +286,19 @@ const extractTemporalInfo = (text) => {
   return dates;
 };
 
-const extractLocationInfo = (text) => {
+const extractLocationInfo = text => {
   const locationPatterns = [
-    /en\s+([^,\.]+)/gi,
-    /de\s+([^,\.]+)/gi,
-    /desde\s+([^,\.]+)/gi,
+    /en\s+([^,.]+)/gi,
+    /de\s+([^,.]+)/gi,
+    /desde\s+([^,.]+)/gi,
   ];
 
   const locations = [];
-  locationPatterns.forEach((pattern) => {
+  locationPatterns.forEach(pattern => {
     const matches = text.match(pattern);
     if (matches) {
       locations.push(
-        ...matches.map((match) =>
-          match.replace(/^(en|de|desde)\s*/i, "").trim()
-        )
+        ...matches.map(match => match.replace(/^(en|de|desde)\s*/i, "").trim())
       );
     }
   });
@@ -308,7 +306,7 @@ const extractLocationInfo = (text) => {
   return [...new Set(locations)];
 };
 
-const extractKeywords = (text) => {
+const extractKeywords = text => {
   // Eliminar palabras comunes y extraer palabras clave
   const commonWords = [
     "el",
@@ -394,13 +392,13 @@ const extractKeywords = (text) => {
     .toLowerCase()
     .replace(/[^\w\s]/g, "")
     .split(/\s+/)
-    .filter((word) => word.length > 3 && !commonWords.includes(word))
+    .filter(word => word.length > 3 && !commonWords.includes(word))
     .slice(0, 10);
 
   return words;
 };
 
-const analyzeTextStyle = (text) => {
+const analyzeTextStyle = text => {
   const analysis = {
     sensationalism: 0,
     objectivity: 0,
@@ -419,7 +417,7 @@ const analyzeTextStyle = (text) => {
     "breaking",
     "shock",
   ];
-  const sensationalCount = sensationalWords.filter((word) =>
+  const sensationalCount = sensationalWords.filter(word =>
     text.toLowerCase().includes(word)
   ).length;
   analysis.sensationalism = Math.min(100, sensationalCount * 15);
@@ -433,7 +431,7 @@ const analyzeTextStyle = (text) => {
     "declara",
     "afirma",
   ];
-  const objectiveCount = objectiveWords.filter((word) =>
+  const objectiveCount = objectiveWords.filter(word =>
     text.toLowerCase().includes(word)
   ).length;
   analysis.objectivity = Math.min(100, objectiveCount * 20);
@@ -445,14 +443,14 @@ const analyzeTextStyle = (text) => {
     /oficial/i,
     /confirmado/i,
   ];
-  const formalCount = formalPatterns.filter((pattern) =>
+  const formalCount = formalPatterns.filter(pattern =>
     pattern.test(text)
   ).length;
   analysis.formality = Math.min(100, formalCount * 25);
 
   // Análisis de urgencia
   const urgencyWords = ["ahora", "urgente", "inmediato", "ya", "rápido"];
-  const urgencyCount = urgencyWords.filter((word) =>
+  const urgencyCount = urgencyWords.filter(word =>
     text.toLowerCase().includes(word)
   ).length;
   analysis.urgency = Math.min(100, urgencyCount * 20);
@@ -461,7 +459,7 @@ const analyzeTextStyle = (text) => {
 };
 
 // Búsqueda con Google Custom Search API
-const searchGoogleWeb = async (keywords) => {
+const searchGoogleWeb = async keywords => {
   try {
     if (
       !config.verification.googleSearchApiKey ||
@@ -491,7 +489,7 @@ const searchGoogleWeb = async (keywords) => {
     );
 
     const results =
-      response.data.items?.map((item) => ({
+      response.data.items?.map(item => ({
         title: item.title,
         snippet: item.snippet,
         link: item.link,
@@ -508,7 +506,7 @@ const searchGoogleWeb = async (keywords) => {
   }
 };
 
-const searchGoogleNews = async (keywords) => {
+const searchGoogleNews = async keywords => {
   try {
     if (
       !config.verification.googleSearchApiKey ||
@@ -537,7 +535,7 @@ const searchGoogleNews = async (keywords) => {
     );
 
     const results =
-      response.data.items?.map((item) => ({
+      response.data.items?.map(item => ({
         title: item.title,
         snippet: item.snippet,
         link: item.link,
@@ -554,7 +552,7 @@ const searchGoogleNews = async (keywords) => {
   }
 };
 
-const searchNewsAPIs = async (keywords) => {
+const searchNewsAPIs = async keywords => {
   try {
     if (!config.verification.newsApiKey) {
       return [];
@@ -573,7 +571,7 @@ const searchNewsAPIs = async (keywords) => {
     });
 
     return (
-      response.data.articles?.map((article) => ({
+      response.data.articles?.map(article => ({
         title: article.title,
         snippet: article.description,
         link: article.url,
@@ -587,21 +585,21 @@ const searchNewsAPIs = async (keywords) => {
   }
 };
 
-const filterAndRankResults = (results, originalText) => {
+const filterAndRankResults = results => {
   return results
-    .filter((result) => result.relevance > 0.3)
+    .filter(result => result.relevance > 0.3)
     .sort((a, b) => b.relevance - a.relevance);
 };
 
 const calculateRelevance = (item, keywords) => {
   const text = `${item.title} ${item.snippet}`.toLowerCase();
-  const keywordMatches = keywords.filter((keyword) =>
+  const keywordMatches = keywords.filter(keyword =>
     text.includes(keyword)
   ).length;
   return keywordMatches / keywords.length;
 };
 
-const calculateCredibilityScore = (results) => {
+const calculateCredibilityScore = results => {
   let score = 50; // Puntuación base
 
   // Factor de análisis de fuente
@@ -640,7 +638,7 @@ const calculateCredibilityScore = (results) => {
   return Math.max(0, Math.min(100, Math.round(score)));
 };
 
-const generateRecommendations = (results) => {
+const generateRecommendations = results => {
   const recommendations = [];
 
   if (results.credibilityScore < 30) {
@@ -682,7 +680,7 @@ const generateRecommendations = (results) => {
   return recommendations;
 };
 
-const checkDomainReputation = async (domain) => {
+const checkDomainReputation = async domain => {
   // Lista de dominios confiables
   const trustedDomains = [
     "reuters.com",
@@ -708,7 +706,7 @@ const checkDomainReputation = async (domain) => {
     "amazing",
   ];
 
-  if (trustedDomains.some((trusted) => domain.includes(trusted))) {
+  if (trustedDomains.some(trusted => domain.includes(trusted))) {
     return {
       score: 90,
       category: "trusted",
@@ -716,7 +714,7 @@ const checkDomainReputation = async (domain) => {
     };
   }
 
-  if (suspiciousDomains.some((suspicious) => domain.includes(suspicious))) {
+  if (suspiciousDomains.some(suspicious => domain.includes(suspicious))) {
     return {
       score: 20,
       category: "suspicious",
@@ -731,7 +729,7 @@ const calculateDomainTrustScore = (domain, reputation) => {
   return reputation.score;
 };
 
-const extractUrlMetadata = async (url) => {
+const extractUrlMetadata = async url => {
   try {
     const response = await axios.get(url, { timeout: 5000 });
     const html = response.data;
@@ -747,12 +745,12 @@ const extractUrlMetadata = async (url) => {
     const description = descMatch ? descMatch[1] : "";
 
     return { title, description };
-  } catch (error) {
+  } catch {
     return { title: "", description: "" };
   }
 };
 
-const checkFactCheckSource = async (source, keywords) => {
+const checkFactCheckSource = async source => {
   // Simulación de verificación con fuentes de fact-checking
   // En una implementación real, usarías las APIs de estas fuentes
   return {
@@ -764,21 +762,19 @@ const checkFactCheckSource = async (source, keywords) => {
   };
 };
 
-const calculateOverallVerification = (verificationResults) => {
+const calculateOverallVerification = verificationResults => {
   if (verificationResults.length === 0) return 0;
 
-  const scores = verificationResults.map((result) => result.confidence || 0);
+  const scores = verificationResults.map(result => result.confidence || 0);
   return scores.reduce((sum, score) => sum + score, 0) / scores.length;
 };
 
-const generateVerificationRecommendations = (verificationResults) => {
+const generateVerificationRecommendations = verificationResults => {
   const recommendations = [];
 
-  const trueCount = verificationResults.filter(
-    (r) => r.rating === "true"
-  ).length;
+  const trueCount = verificationResults.filter(r => r.rating === "true").length;
   const falseCount = verificationResults.filter(
-    (r) => r.rating === "false"
+    r => r.rating === "false"
   ).length;
 
   if (trueCount > falseCount) {

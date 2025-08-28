@@ -72,7 +72,7 @@ class HeadlineComparisonService {
       });
 
       if (response.data.items) {
-        return response.data.items.map((item) => ({
+        return response.data.items.map(item => ({
           title: item.title,
           url: item.link,
           snippet: item.snippet,
@@ -114,7 +114,7 @@ class HeadlineComparisonService {
       });
 
       if (response.data.items) {
-        return response.data.items.map((item) => ({
+        return response.data.items.map(item => ({
           title: item.title,
           url: item.link,
           snippet: item.snippet,
@@ -204,7 +204,7 @@ RESPONDE EN FORMATO JSON:
       // Combinar análisis semántico con resultados
       const enrichedHeadlines = headlines.map((headline, index) => {
         const semanticScore = semanticAnalysis.similarity?.find(
-          (s) => s.index === index + 1
+          s => s.index === index + 1
         );
         return {
           ...headline,
@@ -215,14 +215,14 @@ RESPONDE EN FORMATO JSON:
       });
 
       // Filtrar por relevancia mínima
-      const filtered = enrichedHeadlines.filter((h) => h.semanticScore > 20);
+      const filtered = enrichedHeadlines.filter(h => h.semanticScore > 20);
 
       // Ordenar por puntaje semántico descendente
       const ranked = filtered.sort((a, b) => b.semanticScore - a.semanticScore);
 
       return ranked;
-    } catch (error) {
-      console.error("❌ Error filtrando resultados:", error);
+    } catch {
+      console.error("❌ Error filtrando resultados");
       return headlines;
     }
   }
@@ -231,7 +231,7 @@ RESPONDE EN FORMATO JSON:
     try {
       const urlObj = new URL(url);
       return urlObj.hostname.replace("www.", "");
-    } catch (error) {
+    } catch {
       return "unknown";
     }
   }
@@ -297,15 +297,15 @@ RESPONDE EN FORMATO JSON:
       try {
         const report = JSON.parse(text);
         return report;
-      } catch (parseError) {
-        console.error("❌ Error parseando reporte de Gemini:", parseError);
+      } catch {
+        console.error("❌ Error parseando reporte de Gemini");
         return {
           summary: text,
           recommendations: ["Error al generar reporte detallado"],
         };
       }
-    } catch (error) {
-      console.error("❌ Error generando reporte de comparación:", error);
+    } catch {
+      console.error("❌ Error generando reporte de comparación");
       return {
         summary: "Error generando reporte de comparación",
         recommendations: ["Verificar configuración de APIs"],
