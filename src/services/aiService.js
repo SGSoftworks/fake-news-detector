@@ -1,7 +1,14 @@
 // Servicio para análisis de noticias usando APIs de IA
 // Conecta con el backend real para análisis
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
+// Configuración de la URL del backend
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api";
+
+// Verificar si estamos en desarrollo
+const isDevelopment = import.meta.env.DEV;
+
+console.log(`🔗 Frontend conectando a: ${API_BASE_URL}`);
 
 // Función para analizar texto o URL usando el backend real
 export const analyzeNews = async (content, inputType = "text", signal) => {
@@ -45,13 +52,32 @@ export const analyzeNews = async (content, inputType = "text", signal) => {
     if (error.name === "AbortError") {
       throw error; // Re-lanzar AbortError
     }
+
     console.error("Error en análisis:", error);
-    throw new Error("Error al analizar la noticia");
+
+    // Manejo específico de errores de conexión
+    if (
+      error.message.includes("Failed to fetch") ||
+      error.message.includes("NetworkError")
+    ) {
+      if (isDevelopment) {
+        throw new Error(
+          `❌ No se puede conectar al backend local.\n\nAsegúrate de que el backend esté ejecutándose:\n1. Abre una terminal en la carpeta 'backend'\n2. Ejecuta: npm install\n3. Ejecuta: npm start\n\nEl backend debería estar en: ${API_BASE_URL}`
+        );
+      } else {
+        throw new Error(
+          "Error de conexión con el servidor. Intenta de nuevo en unos momentos."
+        );
+      }
+    }
+
+    // Error genérico
+    throw new Error(error.message || "Error al analizar la noticia");
   }
 };
 
 // Función para guardar análisis en historial (localStorage por ahora)
-export const saveAnalysis = (analysis) => {
+export const saveAnalysis = analysis => {
   try {
     const history = JSON.parse(localStorage.getItem("analysisHistory") || "[]");
     history.unshift({
