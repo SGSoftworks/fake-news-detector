@@ -18,6 +18,7 @@ export const analyzeNews = async (content, inputType = "text", signal) => {
         content,
         inputType, // "text" o "url"
         analyzeUrl: inputType === "url",
+        text: content, // Compatibilidad con backend
       }),
       signal, // Agregar signal para abortar la petición
     });

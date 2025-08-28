@@ -9,13 +9,8 @@ const headlineComparisonService = require("../services/headlineComparisonService
 router.post("/", validateAnalysisRequest, async (req, res) => {
   try {
     const { content, inputType = "text", analyzeUrl = false } = req.body;
-    const text = content || req.body.text; // Compatibilidad con formato anterior
-
-    if (!text || text.trim().length < 10) {
-      return res.status(400).json({
-        error: "El contenido debe tener al menos 10 caracteres",
-      });
-    }
+    // La validación ya se hizo en validateAnalysisRequest
+    const text = content || req.body.text;
 
     console.log(`🔍 Iniciando análisis de ${inputType}...`);
 
