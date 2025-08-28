@@ -316,27 +316,73 @@ const Analysis = () => {
                       <p className="text-gray-600 mb-4">
                         {veracity.description}
                       </p>
-                      <div className="flex items-center space-x-6">
-                        <div>
-                          <span className="text-sm text-gray-500">Confianza del análisis</span>
-                          <div className={`text-lg font-bold text-${credibility.color}-600`}>
-                            {credibility.level} ({result.confidence || 0}%)
-                          </div>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {result.confidence >= 80 
-                              ? "Porcentaje alto indica alta probabilidad de ser verdadera"
-                              : result.confidence >= 50
-                              ? "Porcentaje medio requiere verificación adicional"  
-                              : "Porcentaje bajo sugiere posible desinformación o contenido generado por IA"
-                            }
-                          </p>
-                        </div>
-                        {result.analysisTime && (
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-6">
                           <div>
-                            <span className="text-sm text-gray-500">Tiempo de análisis</span>
-                            <div className="text-lg font-semibold text-gray-700">
-                              {Math.round(result.analysisTime / 1000)}s
+                            <span className="text-sm text-gray-500">Confianza del análisis</span>
+                            <div className={`text-lg font-bold text-${credibility.color}-600`}>
+                              {credibility.level} ({result.confidence || 0}%)
                             </div>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {result.confidence >= 80 
+                                ? "Porcentaje alto indica alta probabilidad de ser verdadera"
+                                : result.confidence >= 50
+                                ? "Porcentaje medio requiere verificación adicional"  
+                                : "Porcentaje bajo sugiere posible desinformación o contenido generado por IA"
+                              }
+                            </p>
+                          </div>
+                          {result.analysisTime && (
+                            <div>
+                              <span className="text-sm text-gray-500">Tiempo de análisis</span>
+                              <div className="text-lg font-semibold text-gray-700">
+                                {Math.round(result.analysisTime / 1000)}s
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Classification Details */}
+                        {result.classification && (
+                          <div className="mt-4 p-4 bg-white border border-gray-200 rounded-lg">
+                            <h6 className="font-semibold text-gray-800 mb-3 flex items-center">
+                              <Bot className="h-4 w-4 mr-2 text-gray-600" />
+                              Clasificación Detallada
+                            </h6>
+                            <div className="grid md:grid-cols-2 gap-4">
+                              <div>
+                                <span className="text-sm text-gray-500">Tipo de contenido</span>
+                                <div className={`mt-1 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                                  result.classification.category === 'real_news' ? 'bg-green-100 text-green-800' :
+                                  result.classification.category === 'false_news' ? 'bg-red-100 text-red-800' :
+                                  result.classification.category === 'ai_content' ? 'bg-orange-100 text-orange-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {result.classification.category === 'real_news' && <CheckCircle className="h-3 w-3 mr-1" />}
+                                  {result.classification.category === 'false_news' && <AlertTriangle className="h-3 w-3 mr-1" />}
+                                  {result.classification.category === 'ai_content' && <Bot className="h-3 w-3 mr-1" />}
+                                  {result.classification.category === 'unclear' && <AlertCircle className="h-3 w-3 mr-1" />}
+                                  
+                                  {result.classification.category === 'real_news' ? 'Noticia Real' :
+                                   result.classification.category === 'false_news' ? 'Noticia Falsa' :
+                                   result.classification.category === 'ai_content' ? 'Contenido IA' :
+                                   'No Claro'}
+                                </div>
+                              </div>
+                              <div>
+                                <span className="text-sm text-gray-500">Precisión clasificación</span>
+                                <div className="mt-1 text-sm font-semibold text-gray-700">
+                                  {result.classification.confidence}%
+                                </div>
+                              </div>
+                            </div>
+                            {result.classification.reasoning && (
+                              <div className="mt-3 pt-3 border-t border-gray-100">
+                                <p className="text-sm text-gray-600 leading-relaxed">
+                                  {result.classification.reasoning}
+                                </p>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
@@ -565,6 +611,179 @@ const Analysis = () => {
               </div>
             </div>
           </div>
+
+          {/* Related Articles for Comparison Section */}
+          {(result.webVerification?.relatedArticles && result.webVerification.relatedArticles.length > 0) || 
+           (result.factors?.some(factor => factor.relatedArticles && factor.relatedArticles.length > 0)) && (
+            <div className="border-t border-gray-200 pt-8 mb-8">
+              <h4 className="font-bold text-gray-900 mb-6 flex items-center">
+                <BookOpen className="mr-2 h-5 w-5 text-indigo-600" />
+                Artículos Relacionados para Comparación
+              </h4>
+              
+              <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-5 mb-6">
+                <div className="flex items-start">
+                  <Info className="h-5 w-5 text-indigo-600 mt-0.5 mr-3" />
+                  <div>
+                    <h5 className="font-semibold text-indigo-900 mb-2">¿Por qué es importante comparar?</h5>
+                    <p className="text-indigo-800 text-sm">
+                      La verificación cruzada con artículos relacionados nos ayuda a determinar si la información:
+                      <span className="font-medium"> es consistente con fuentes confiables, contradice información verificada, 
+                      o presenta patrones únicos que podrían indicar contenido generado artificialmente.</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Articles from Web Verification */}
+                {result.webVerification?.relatedArticles && result.webVerification.relatedArticles.map((article, index) => (
+                  <div key={`web-${index}`} className="bg-white border border-gray-200 rounded-lg hover:shadow-lg transition-all duration-300">
+                    <div className="p-5">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h6 className="font-semibold text-gray-900 leading-tight mb-2">
+                            {article.title}
+                          </h6>
+                          <div className="flex items-center space-x-3 mb-3">
+                            <div className="flex items-center">
+                              <Globe className="h-3 w-3 text-gray-400 mr-1" />
+                              <span className="text-xs text-gray-500 font-medium">{article.source}</span>
+                            </div>
+                            <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              article.similarity === 'high' ? 'bg-green-100 text-green-800' :
+                              article.similarity === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              Similitud: {article.similarity === 'high' ? 'Alta' : 
+                                        article.similarity === 'medium' ? 'Media' : 'Baja'}
+                            </div>
+                          </div>
+                        </div>
+                        {article.url && (
+                          <a
+                            href={article.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-3 p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors flex-shrink-0"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        )}
+                      </div>
+                      
+                      <div className="mb-4">
+                        <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                          article.relationship === 'confirms' ? 'bg-green-100 text-green-800' :
+                          article.relationship === 'contradicts' ? 'bg-red-100 text-red-800' :
+                          article.relationship === 'related' ? 'bg-blue-100 text-blue-800' :
+                          'bg-purple-100 text-purple-800'
+                        }`}>
+                          {article.relationship === 'confirms' && <CheckCircle className="h-3 w-3 mr-1" />}
+                          {article.relationship === 'contradicts' && <AlertTriangle className="h-3 w-3 mr-1" />}
+                          {article.relationship === 'related' && <TrendingUp className="h-3 w-3 mr-1" />}
+                          {article.relationship === 'same_topic' && <Eye className="h-3 w-3 mr-1" />}
+                          
+                          {article.relationship === 'confirms' ? 'Confirma la información' :
+                           article.relationship === 'contradicts' ? 'Contradice la información' :
+                           article.relationship === 'related' ? 'Información relacionada' :
+                           'Mismo tema'}
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <span>Fuente de verificación</span>
+                        <span className="font-medium">Gemini 2.0 + Web Search</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Articles from Factors */}
+                {result.factors?.filter(factor => factor.relatedArticles && factor.relatedArticles.length > 0)
+                  .slice(0, 4).map((factor, factorIndex) => 
+                    factor.relatedArticles.slice(0, 2).map((articleUrl, articleIndex) => (
+                      <div key={`factor-${factorIndex}-${articleIndex}`} className="bg-white border border-gray-200 rounded-lg hover:shadow-lg transition-all duration-300">
+                        <div className="p-5">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <h6 className="font-semibold text-gray-900 leading-tight mb-2">
+                                Artículo relacionado con {factor.name}
+                              </h6>
+                              <div className="flex items-center space-x-3 mb-3">
+                                <div className="flex items-center">
+                                  <LinkIcon className="h-3 w-3 text-gray-400 mr-1" />
+                                  <span className="text-xs text-gray-500 font-medium">
+                                    {new URL(articleUrl).hostname}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <a
+                              href={articleUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="ml-3 p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors flex-shrink-0"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          </div>
+                          
+                          <div className="mb-4">
+                            <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                              factor.impact === 'high' ? 'bg-red-100 text-red-800' :
+                              factor.impact === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-green-100 text-green-800'
+                            }`}>
+                              <Info className="h-3 w-3 mr-1" />
+                              Factor: {factor.impact === 'high' ? 'Alto impacto' : 
+                                       factor.impact === 'medium' ? 'Impacto medio' : 'Bajo impacto'}
+                            </div>
+                          </div>
+                          
+                          <p className="text-sm text-gray-600 mb-3 leading-relaxed">
+                            {factor.description}
+                          </p>
+                          
+                          <div className="flex items-center justify-between text-xs text-gray-500">
+                            <span>Encontrado en análisis</span>
+                            <span className="font-medium">{factor.name}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+              </div>
+
+              {/* Comparison Summary */}
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <h6 className="font-semibold text-gray-800 mb-2 flex items-center">
+                  <TrendingUp className="h-4 w-4 mr-2 text-gray-600" />
+                  Resumen de Comparación
+                </h6>
+                <div className="grid md:grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium text-green-700">Confirman:</span>
+                    <span className="ml-2 text-gray-600">
+                      {(result.webVerification?.relatedArticles?.filter(a => a.relationship === 'confirms')?.length || 0)} artículos
+                    </span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-red-700">Contradicen:</span>
+                    <span className="ml-2 text-gray-600">
+                      {(result.webVerification?.relatedArticles?.filter(a => a.relationship === 'contradicts')?.length || 0)} artículos
+                    </span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-blue-700">Relacionados:</span>
+                    <span className="ml-2 text-gray-600">
+                      {(result.webVerification?.relatedArticles?.filter(a => a.relationship === 'related')?.length || 0)} artículos
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Verification Results Section */}
           {(result.similarHeadlines && result.similarHeadlines.length > 0) || 

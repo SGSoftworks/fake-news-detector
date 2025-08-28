@@ -374,13 +374,32 @@ PROCESO DE ANÁLISIS OBLIGATORIO:
 4. **FACT-CHECKING**: Verifica hechos, fechas, personas y eventos mencionados
 5. **ANÁLISIS DE CREDIBILIDAD**: Evalúa la reputación de las fuentes citadas
 
-DETECCIÓN DE CONTENIDO IA - SEÑALES CRÍTICAS:
-- Texto demasiado perfecto o formulaico
-- Falta de detalles específicos verificables
-- Uso repetitivo de frases o estructuras
-- Información genérica sin contexto local
-- Ausencia de errores humanos naturales
-- Patrones de lenguaje artificial
+CLASIFICACIÓN AVANZADA - TIPOS DE CONTENIDO:
+
+🤖 CONTENIDO GENERADO POR IA (Señales específicas):
+- Texto excesivamente pulido sin errores naturales
+- Estructura demasiado perfecta y simétrica
+- Falta de detalles locales específicos (direcciones exactas, nombres completos)
+- Uso de frases genéricas como "según expertos" sin nombres
+- Información que suena plausible pero no es verificable
+- Ausencia de contradicciones o matices humanos naturales
+- Fechas recientes sin contexto histórico verificable
+
+📰 NOTICIA FALSA/DESINFORMACIÓN (Señales específicas):
+- Información contradice fuentes establecidas
+- Eventos que no aparecen en medios confiables
+- Fuentes citadas que no existen o son inventadas
+- Afirmaciones extraordinarias sin evidencia extraordinaria
+- Sesgo extremo o lenguaje polarizante
+- Información diseñada para generar emociones fuertes
+
+✅ INFORMACIÓN REAL/VERIFICABLE (Señales específicas):
+- Fuentes citadas que existen y son verificables
+- Detalles específicos que coinciden con registros públicos
+- Presencia en múltiples medios confiables
+- Contexto histórico consistente
+- Errores menores típicos de contenido humano
+- Matices y contradicciones naturales
 
 VERIFICACIÓN WEB OBLIGATORIA:
 - Buscar la noticia en medios establecidos (BBC, Reuters, AP, etc.)
@@ -392,32 +411,50 @@ FORMATO DE RESPUESTA (JSON válido únicamente):
 {
   "isFake": boolean,
   "confidence": number (0-100),
+  "contentType": "real|fake|ai_generated",
+  "classification": {
+    "category": "real_news|false_news|ai_content|unclear",
+    "reasoning": "Explicación específica del tipo de contenido detectado",
+    "confidence": number (0-100)
+  },
   "explanation": "Explicación detallada basada en verificación web. Menciona qué fuentes consultaste y qué encontraste.",
   "factors": [
     {
       "name": "Verificación de fuentes",
       "description": "Resultado de búsqueda de las fuentes mencionadas en el texto",
       "impact": "high/medium/low",
-      "webValidation": "URL o resultado de búsqueda específico"
+      "webValidation": "URL o resultado de búsqueda específico",
+      "relatedArticles": ["URLs de artículos relacionados encontrados"]
     },
     {
       "name": "Similitud con noticias verificadas", 
       "description": "Comparación con noticias reales en medios establecidos",
       "impact": "high/medium/low",
-      "similarSources": ["lista de medios donde se encontró información similar"]
+      "similarSources": ["lista de medios donde se encontró información similar"],
+      "relatedArticles": ["URLs específicas de artículos similares"]
     },
     {
       "name": "Detección de contenido IA",
       "description": "Análisis de patrones que sugieren generación artificial",
       "impact": "high/medium/low",
-      "aiIndicators": ["patrones específicos detectados"]
+      "aiIndicators": ["patrones específicos detectados"],
+      "humanPatterns": ["patrones humanos encontrados o ausentes"]
     }
   ],
   "webVerification": {
     "sourcesFound": ["URLs de fuentes que confirman/desmienten la información"],
     "factCheckResults": ["Resultados de fact-checkers reconocidos"],
     "mediaPresence": "Descripción de presencia en medios establecidos",
-    "contradictingSources": ["Fuentes que contradicen la información"]
+    "contradictingSources": ["Fuentes que contradicen la información"],
+    "relatedArticles": [
+      {
+        "title": "Título del artículo relacionado",
+        "url": "URL del artículo",
+        "source": "Nombre del medio",
+        "similarity": "high|medium|low",
+        "relationship": "confirms|contradicts|related|same_topic"
+      }
+    ]
   },
   "recommendations": [
     "Enlaces específicos para verificar la información",
@@ -486,14 +523,21 @@ INSTRUCCIONES CRÍTICAS:
       
       const result = JSON.parse(cleanContent);
 
-      // Validar y normalizar respuesta
+      // Validar y normalizar respuesta con nueva clasificación
       const finalResult = {
         isFake: Boolean(result.isFake),
         confidence: Math.max(0, Math.min(100, Number(result.confidence) || 50)),
+        contentType: result.contentType || (result.isFake ? "fake" : "real"),
+        classification: result.classification || {
+          category: result.isFake ? "false_news" : "real_news",
+          reasoning: "Clasificación basada en análisis general",
+          confidence: result.confidence || 50
+        },
         explanation: result.explanation || result.summary || "Análisis completado",
         factors: Array.isArray(result.factors) ? result.factors : [],
         recommendations: Array.isArray(result.recommendations) ? result.recommendations : [],
         summary: result.summary || result.explanation || "",
+        webVerification: result.webVerification || null,
         source: "Google Gemini",
         model: config.gemini.model,
       };
