@@ -20,21 +20,38 @@ const aiConfig = {
     enabled: !!process.env.HUGGINGFACE_API_KEY,
   },
 
-  // Google Gemini API Configuration
+  // Google Gemini API Configuration (Versión 2.0 Flash - Latest)
   gemini: {
     apiKey: process.env.GEMINI_API_KEY,
-    model: process.env.GEMINI_MODEL || "gemini-1.5-flash",
+    model: process.env.GEMINI_MODEL || "gemini-2.0-flash-exp", // Versión más reciente
     enabled: !!process.env.GEMINI_API_KEY,
+    safetySettings: [
+      {
+        category: "HARM_CATEGORY_HATE_SPEECH",
+        threshold: "BLOCK_MEDIUM_AND_ABOVE"
+      },
+      {
+        category: "HARM_CATEGORY_DANGEROUS_CONTENT", 
+        threshold: "BLOCK_MEDIUM_AND_ABOVE"
+      }
+    ],
+    generationConfig: {
+      temperature: 0.2, // Más conservador para análisis objetivos
+      topP: 0.8,
+      topK: 40,
+      maxOutputTokens: 2048,
+    }
   },
 
-  // Configuración de análisis combinado mejorada
+  // Configuración de análisis mejorada - Solo IA avanzada
   analysis: {
-    // Ponderaciones para combinar resultados (Gemini prioritario)
+    // Ponderaciones para combinar resultados (Solo IA avanzada + verificación)
     weights: {
-      local: parseFloat(process.env.LOCAL_WEIGHT) || 0.05, // Peso mínimo
-      openai: parseFloat(process.env.OPENAI_WEIGHT) || 0.0, // No usar OpenAI
-      huggingface: parseFloat(process.env.HUGGINGFACE_WEIGHT) || 0.15, // Peso bajo
-      gemini: parseFloat(process.env.GEMINI_WEIGHT) || 0.8, // Peso máximo - Gemini prioritario
+      local: 0.0, // Eliminado completamente
+      openai: 0.0, // No usar OpenAI 
+      huggingface: parseFloat(process.env.HUGGINGFACE_WEIGHT) || 0.25, // Soporte secundario
+      gemini: parseFloat(process.env.GEMINI_WEIGHT) || 0.75, // Principal
+      verification: parseFloat(process.env.VERIFICATION_WEIGHT) || 0.3, // Búsquedas externas
     },
 
     // Umbrales de confianza más estrictos

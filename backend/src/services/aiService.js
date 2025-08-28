@@ -13,10 +13,9 @@ const analyzeText = async text => {
     // Detectar si es URL o texto
     const isUrl = text.startsWith("http://") || text.startsWith("https://");
 
-    // Análisis local siempre disponible
-    const localAnalysis = performLocalAnalysis(text);
+    // Solo análisis avanzado con IA y verificación externa
     const results = {
-      local: localAnalysis,
+      local: null, // Eliminado
       huggingface: null,
       gemini: null,
     };
@@ -346,57 +345,57 @@ const processHuggingFaceResponse = data => {
   };
 };
 
-// Análisis con Google Gemini API - Versión Mejorada y Más Agresiva
+// Análisis con Google Gemini 2.0 Flash - Profesional y Comprensible
 const analyzeWithGemini = async text => {
   if (!config.gemini.enabled) {
     throw new Error("Google Gemini API no está habilitada");
   }
 
   try {
-    console.log("🔍 Analizando con Google Gemini (Modo Agresivo)...");
+    console.log("🔍 Analizando con Google Gemini 2.0 Flash...");
 
-    const systemPrompt = `Eres un experto CRÍTICO en detectar noticias falsas y desinformación en español. 
-    Tu misión es PROTEGER a los usuarios de información engañosa. Sé MÁS AGRESIVO en tu análisis.
-    
-    Analiza el siguiente texto y responde ÚNICAMENTE con un JSON válido que contenga:
+    const systemPrompt = `Eres un verificador de noticias profesional que ayuda a usuarios comunes a entender la credibilidad de la información.
+
+Tu objetivo es proporcionar análisis claros y comprensibles, sin usar términos técnicos complicados.
+
+INSTRUCCIONES DE ANÁLISIS:
+1. Evalúa la credibilidad del contenido de forma objetiva
+2. Explica tu razonamiento en lenguaje sencillo
+3. Identifica elementos específicos que influyen en tu evaluación
+4. Proporciona recomendaciones prácticas
+
+FACTORES A EVALUAR:
+- Presencia y calidad de las fuentes mencionadas
+- Estilo de redacción (objetivo vs. sensacionalista)
+- Coherencia de la información presentada
+- Detalles verificables (fechas, lugares, personas)
+- Tono emocional del contenido
+
+FORMATO DE RESPUESTA (JSON válido únicamente):
+{
+  "isFake": boolean,
+  "confidence": number (0-100),
+  "explanation": "Explicación clara y simple sobre por qué el contenido es o no confiable. Usa ejemplos específicos del texto analizado.",
+  "factors": [
     {
-      "isFake": boolean,
-      "confidence": number (0-100),
-      "factors": [{"name": string, "description": string, "impact": "low|medium|high"}],
-      "explanation": string
+      "name": "Nombre descriptivo del factor",
+      "description": "Explicación sencilla de lo que encontraste",
+      "impact": "high/medium/low"
     }
-    
-    FACTORES CRÍTICOS A EVALUAR (Sé estricto):
-    
-    🚨 SEÑALES DE ALERTA MÁXIMA:
-    - Lenguaje sensacionalista, emocional o manipulador
-    - Falta de fuentes específicas, citas o referencias
-    - Uso excesivo de mayúsculas, signos de exclamación
-    - Palabras de urgencia: "URGENTE", "BREAKING", "EXCLUSIVO"
-    - Promesas extraordinarias o demasiado buenas para ser verdad
-    - Ataques personales o lenguaje polarizante
-    - Falta de fechas, lugares o detalles verificables
-    
-    🔍 ANÁLISIS DE CREDIBILIDAD:
-    - ¿Las fuentes mencionadas son confiables?
-    - ¿La información es verificable?
-    - ¿El tono es objetivo o manipulador?
-    - ¿Hay contradicciones internas?
-    - ¿La información parece demasiado perfecta o conveniente?
-    
-    ⚠️ INSTRUCCIONES ESPECIALES:
-    - Si hay CUALQUIER señal de alerta, marca como potencialmente falsa
-    - Sé más estricto con noticias que carecen de fuentes
-    - Considera el contexto político/social actual
-    - Evalúa si la información podría causar daño si se comparte
-    - Prioriza la seguridad del usuario sobre dar el beneficio de la duda
-    
-    ESCALA DE CONFIANZA:
-    - 0-30: Muy probablemente falsa
-    - 31-50: Probablemente falsa
-    - 51-70: Dudosa, necesita verificación
-    - 71-90: Probablemente verdadera
-    - 91-100: Muy probablemente verdadera`;
+  ],
+  "recommendations": [
+    "Recomendaciones prácticas que el usuario puede seguir",
+    "Acciones específicas para verificar la información"
+  ],
+  "summary": "Resumen breve de la evaluación en 1-2 oraciones"
+}
+
+NIVEL DE CONFIANZA:
+- 90-100: Muy confiable - información sólida con buenas fuentes
+- 70-89: Confiable - información creíble con algunas fuentes
+- 50-69: Dudosa - necesita verificación adicional
+- 30-49: Poco confiable - tiene señales de alerta
+- 0-29: No confiable - probablemente falsa o engañosa`;
 
     const response = await axios.post(
       `https://generativelanguage.googleapis.com/v1beta/models/${config.gemini.model}:generateContent`,
@@ -405,45 +404,112 @@ const analyzeWithGemini = async text => {
           {
             parts: [
               {
-                text: `${systemPrompt}\n\nANALIZA ESTA NOTICIA CRÍTICAMENTE:\n"${text}"\n\nRecuerda: Es mejor ser cauteloso que permitir la propagación de desinformación.`,
+                text: `${systemPrompt}\n\nCONTENIDO A ANALIZAR:\n"${text}"\n\nPor favor, analiza este contenido y proporciona tu evaluación en el formato JSON solicitado.`,
               },
             ],
           },
         ],
-        generationConfig: {
-          temperature: 0.2, // Más determinístico
-          maxOutputTokens: 800, // Más detallado
+        safetySettings: config.gemini.safetySettings || [
+          {
+            category: "HARM_CATEGORY_HATE_SPEECH",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT", 
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          }
+        ],
+        generationConfig: config.gemini.generationConfig || {
+          temperature: 0.2,
+          topP: 0.8,
+          topK: 40,
+          maxOutputTokens: 2048,
         },
       },
       {
-        params: { key: config.gemini.apiKey },
-        timeout: config.analysis.timeouts.gemini,
         headers: {
           "Content-Type": "application/json",
+          "x-goog-api-key": config.gemini.apiKey,
         },
+        timeout: config.analysis.timeouts.gemini,
       }
     );
 
+    if (!response.data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+      throw new Error("Respuesta inválida de Gemini API");
+    }
+
     const content = response.data.candidates[0].content.parts[0].text;
-    const result = JSON.parse(content);
+    
+    try {
+      // Limpiar y parsear JSON
+      const cleanContent = content
+        .replace(/```json/gi, "")
+        .replace(/```/g, "")
+        .trim();
+      
+      const result = JSON.parse(cleanContent);
 
-    // Ajustar confianza para ser más conservador
-    if (result.confidence > 70 && result.isFake) {
-      result.confidence = Math.min(result.confidence, 85); // Máximo 85% si es fake
-    }
-    if (result.confidence < 30 && !result.isFake) {
-      result.confidence = Math.max(result.confidence, 15); // Mínimo 15% si es verdadera
+      // Validar y normalizar respuesta
+      const finalResult = {
+        isFake: Boolean(result.isFake),
+        confidence: Math.max(0, Math.min(100, Number(result.confidence) || 50)),
+        explanation: result.explanation || result.summary || "Análisis completado",
+        factors: Array.isArray(result.factors) ? result.factors : [],
+        recommendations: Array.isArray(result.recommendations) ? result.recommendations : [],
+        summary: result.summary || result.explanation || "",
+        source: "Google Gemini",
+        model: config.gemini.model,
+      };
+
+      console.log("✅ Google Gemini 2.0 analysis completed");
+      return finalResult;
+
+    } catch (parseError) {
+      console.error("❌ Error parseando respuesta de Gemini:", parseError);
+      
+      // Fallback: análisis básico del texto de respuesta
+      const isFake = content.toLowerCase().includes("falsa") || 
+                     content.toLowerCase().includes("no confiable") ||
+                     content.toLowerCase().includes("engañosa");
+      
+      return {
+        isFake,
+        confidence: 50,
+        explanation: "El análisis se completó pero hubo problemas al procesar la respuesta detallada. Se recomienda verificar la información con fuentes adicionales.",
+        factors: [
+          {
+            name: "Análisis técnico limitado",
+            description: "No se pudo procesar completamente la respuesta del sistema de IA",
+            impact: "medium"
+          }
+        ],
+        recommendations: [
+          "Verifica la información en fuentes oficiales",
+          "Busca la misma noticia en medios reconocidos",
+          "Consulta fact-checkers especializados"
+        ],
+        summary: "Análisis completado con limitaciones técnicas",
+        source: "Google Gemini",
+        model: config.gemini.model,
+      };
     }
 
-    console.log("✅ Google Gemini analysis completed (Modo Agresivo)");
-    return {
-      ...result,
-      source: "Google Gemini",
-      model: config.gemini.model,
-    };
   } catch (error) {
     console.error("❌ Google Gemini API error:", error.message);
-    throw new Error(`Error al analizar con Google Gemini: ${error.message}`);
+    
+    // Errores específicos con mensajes claros
+    if (error.response?.status === 429) {
+      throw new Error("El servicio está temporalmente sobrecargado. Intenta de nuevo en unos minutos.");
+    }
+    if (error.response?.status === 403) {
+      throw new Error("Error de autenticación con el servicio de IA.");
+    }
+    if (error.response?.status === 400) {
+      throw new Error("El contenido no pudo ser analizado. Intenta con un texto diferente.");
+    }
+    
+    throw new Error("No se pudo completar el análisis con IA. Intenta de nuevo más tarde.");
   }
 };
 

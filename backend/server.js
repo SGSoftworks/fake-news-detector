@@ -1,6 +1,17 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const helmet = require("helmet");
+
+// Importar middleware de seguridad
+const {
+  generalRateLimit,
+  securityHeaders,
+  securityLogger,
+  validateContentType,
+  sanitizeInput,
+  addTransparencyInfo
+} = require("./src/middleware/security");
 
 // Cargar variables de entorno
 dotenv.config();
@@ -8,16 +19,55 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
+// Middleware de seguridad básico
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  }
+}));
+
+// Rate limiting general
+app.use(generalRateLimit);
+
+// Logging de seguridad
+app.use(securityLogger);
+
+// Headers de seguridad personalizados
+app.use(securityHeaders);
+
+// Validación de content-type
+app.use(validateContentType);
+
+// CORS configurado de forma segura
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "*",
+    origin: process.env.CORS_ORIGIN || (process.env.NODE_ENV === 'production' ? false : "*"),
     credentials: true,
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    maxAge: 86400 // 24 horas
   })
 );
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Parseo de JSON con límite de tamaño
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+
+// Sanitización de entrada
+app.use(sanitizeInput);
+
+// Información de transparencia
+app.use(addTransparencyInfo);
 
 // Rutas
 app.use("/api/analysis", require("./src/routes/analysis"));
