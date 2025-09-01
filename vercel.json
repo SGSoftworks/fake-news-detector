@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "detector-ia",
   "builds": [
     {
       "src": "package.json",
@@ -66,10 +65,5 @@
   ],
   "env": {
     "REACT_APP_ENVIRONMENT": "production"
-  },
-  "functions": {
-    "api/**/*.js": {
-      "maxDuration": 30
-    }
   }
 }
