@@ -1,8 +1,11 @@
 // Servicio principal para APIs de detección de IA
 class AIService {
   constructor() {
-    this.baseURL =
-      process.env.REACT_APP_API_BASE_URL || "https://api.detector-ia.com";
+    // Por ahora, usamos solo datos mock para evitar errores de CORS
+    this.useMockData = true;
+    
+    // Configuración para futuras integraciones de APIs reales
+    this.baseURL = process.env.REACT_APP_API_BASE_URL || "https://api.detector-ia.com";
     this.openaiKey = process.env.REACT_APP_OPENAI_API_KEY;
     this.googleKey = process.env.REACT_APP_GOOGLE_CLOUD_API_KEY;
     this.azureKey = process.env.REACT_APP_AZURE_API_KEY;
@@ -12,6 +15,11 @@ class AIService {
   // Análisis de texto usando OpenAI
   async analyzeText(text) {
     try {
+      // Por ahora, usamos solo datos mock
+      if (this.useMockData) {
+        return this.getMockTextAnalysis();
+      }
+
       const response = await fetch(`${this.baseURL}/api/analyze/text`, {
         method: "POST",
         headers: {
@@ -40,6 +48,11 @@ class AIService {
   // Análisis de imágenes usando Google Cloud Vision
   async analyzeImage(imageFile) {
     try {
+      // Por ahora, usamos solo datos mock
+      if (this.useMockData) {
+        return this.getMockImageAnalysis();
+      }
+
       const formData = new FormData();
       formData.append("image", imageFile);
 
@@ -66,6 +79,11 @@ class AIService {
   // Análisis de video usando Azure Cognitive Services
   async analyzeVideo(videoFile) {
     try {
+      // Por ahora, usamos solo datos mock
+      if (this.useMockData) {
+        return this.getMockVideoAnalysis();
+      }
+
       const formData = new FormData();
       formData.append("video", videoFile);
 
@@ -96,6 +114,11 @@ class AIService {
   // Análisis de audio usando Azure Speech Services
   async analyzeAudio(audioFile) {
     try {
+      // Por ahora, usamos solo datos mock
+      if (this.useMockData) {
+        return this.getMockAudioAnalysis();
+      }
+
       const formData = new FormData();
       formData.append("audio", audioFile);
 
@@ -126,6 +149,11 @@ class AIService {
   // Análisis de código usando GitHub Copilot API
   async analyzeCode(code) {
     try {
+      // Por ahora, usamos solo datos mock
+      if (this.useMockData) {
+        return this.getMockCodeAnalysis();
+      }
+
       const response = await fetch(`${this.baseURL}/api/analyze/code`, {
         method: "POST",
         headers: {
@@ -153,6 +181,11 @@ class AIService {
   // Análisis académico usando Turnitin API
   async analyzeAcademic(content) {
     try {
+      // Por ahora, usamos solo datos mock
+      if (this.useMockData) {
+        return this.getMockAcademicAnalysis();
+      }
+
       const response = await fetch(`${this.baseURL}/api/analyze/academic`, {
         method: "POST",
         headers: {
