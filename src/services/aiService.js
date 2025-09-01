@@ -3,8 +3,7 @@ class AIService {
   constructor() {
     // Configuración para conectar con el backend real
     this.baseURL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
-    this.useMockData = !process.env.REACT_APP_HUGGINGFACE_ENABLED || 
-                       !process.env.REACT_APP_GEMINI_ENABLED;
+    this.useMockData = false; // SIEMPRE usar APIs reales
     
     // Configuración para futuras integraciones de APIs reales
     this.openaiKey = process.env.REACT_APP_OPENAI_API_KEY;
@@ -54,7 +53,12 @@ class AIService {
         }
 
         const data = await response.json();
-        return this.formatTextAnalysis(data);
+        console.log('Respuesta del backend:', data);
+        
+        // Enriquecer con enlaces dinámicos y recursos adicionales
+        const enrichedData = await this.enrichWithDynamicResources(data, text);
+        
+        return this.formatTextAnalysis(enrichedData);
       }
 
       // Fallback a datos mock si el backend no está disponible
@@ -65,6 +69,218 @@ class AIService {
       console.log('Fallback a datos mock debido al error');
       return this.getMockTextAnalysis();
     }
+  }
+
+  // Enriquecer datos con recursos dinámicos y enlaces actualizados
+  async enrichWithDynamicResources(data, originalText) {
+    try {
+      // Generar enlaces dinámicos basados en el contenido analizado
+      const dynamicLinks = await this.generateDynamicLinks(data, originalText);
+      
+      // Generar pasos de proceso dinámicos
+      const dynamicProcessSteps = this.generateDynamicProcessSteps(data);
+      
+      // Generar explicaciones dinámicas
+      const dynamicExplanations = this.generateDynamicExplanations(data);
+      
+      return {
+        ...data,
+        links: dynamicLinks,
+        processSteps: dynamicProcessSteps,
+        explanation: dynamicExplanations,
+        timestamp: new Date().toISOString(),
+        analysisId: this.generateAnalysisId()
+      };
+    } catch (error) {
+      console.error('Error enriqueciendo datos:', error);
+      return data;
+    }
+  }
+
+  // Generar enlaces dinámicos basados en el análisis
+  async generateDynamicLinks(data, originalText) {
+    const links = [];
+    
+    // Enlaces de investigación académica dinámicos
+    const researchTopics = this.extractResearchTopics(data, originalText);
+    for (const topic of researchTopics.slice(0, 3)) {
+      links.push({
+        title: `Investigación sobre: ${topic}`,
+        url: `https://scholar.google.com/scholar?q=${encodeURIComponent(topic)}`,
+        description: `Búsqueda académica sobre ${topic} en Google Scholar`,
+        type: 'academic'
+      });
+    }
+    
+    // Enlaces de verificación de noticias
+    if (data.verification_results) {
+      links.push({
+        title: 'Verificación de Fuentes',
+        url: 'https://www.snopes.com/',
+        description: 'Fact-checking de noticias y rumores',
+        type: 'verification'
+      });
+      
+      links.push({
+        title: 'Reuters Fact Check',
+        url: 'https://www.reuters.com/fact-check/',
+        description: 'Verificación de hechos por Reuters',
+        type: 'verification'
+      });
+    }
+    
+    // Enlaces de herramientas de detección de IA
+    links.push({
+      title: 'OpenAI Text Classifier',
+      url: 'https://platform.openai.com/ai-text-classifier',
+      description: 'Clasificador oficial de OpenAI para detectar texto generado por IA',
+      type: 'tool'
+    });
+    
+    links.push({
+      title: 'Hugging Face Detector',
+      url: 'https://huggingface.co/roberta-base-openai-detector',
+      description: 'Modelo de detección de IA basado en RoBERTa',
+      type: 'tool'
+    });
+    
+    // Enlaces de investigación reciente
+    const currentYear = new Date().getFullYear();
+    links.push({
+      title: `Investigación ${currentYear} sobre Detección de IA`,
+      url: `https://arxiv.org/search/?query=detecci%C3%B3n+IA+${currentYear}&searchtype=all&source=header`,
+      description: `Artículos académicos recientes sobre detección de IA`,
+      type: 'research'
+    });
+    
+    return links;
+  }
+
+  // Generar pasos de proceso dinámicos
+  generateDynamicProcessSteps(data) {
+    const steps = [];
+    let stepNumber = 1;
+    
+    if (data.huggingface_analysis) {
+      steps.push({
+        step: stepNumber++,
+        title: 'Análisis con Hugging Face',
+        description: 'Evaluación usando modelos de lenguaje pre-entrenados',
+        duration: '3-5 segundos',
+        status: 'completed',
+        details: data.huggingface_analysis
+      });
+    }
+    
+    if (data.gemini_analysis) {
+      steps.push({
+        step: stepNumber++,
+        title: 'Análisis con Google Gemini',
+        description: 'Evaluación usando IA multimodal avanzada',
+        duration: '4-6 segundos',
+        status: 'completed',
+        details: data.gemini_analysis
+      });
+    }
+    
+    if (data.verification_analysis) {
+      steps.push({
+        step: stepNumber++,
+        title: 'Verificación Externa',
+        description: 'Búsqueda y validación de fuentes',
+        duration: '5-8 segundos',
+        status: 'completed',
+        details: data.verification_analysis
+      });
+    }
+    
+    steps.push({
+      step: stepNumber++,
+      title: 'Análisis Combinado',
+      description: 'Integración de resultados con pesos configurados',
+      duration: '1-2 segundos',
+      status: 'completed',
+      details: `Pesos: Local (${process.env.REACT_APP_LOCAL_WEIGHT || 0.2}), HF (${process.env.REACT_APP_HUGGINGFACE_WEIGHT || 0.3}), Gemini (${process.env.REACT_APP_GEMINI_WEIGHT || 0.5})`
+    });
+    
+    return steps;
+  }
+
+  // Generar explicaciones dinámicas
+  generateDynamicExplanations(data) {
+    return {
+      user: this.generateUserExplanation(data),
+      developer: this.generateDeveloperExplanation(data)
+    };
+  }
+
+  // Generar explicación para usuarios
+  generateUserExplanation(data) {
+    let explanation = 'El análisis se realizó usando múltiples tecnologías de IA avanzadas: ';
+    
+    if (data.huggingface_analysis) {
+      explanation += 'modelos de lenguaje pre-entrenados para detectar patrones, ';
+    }
+    
+    if (data.gemini_analysis) {
+      explanation += 'análisis multimodal de Google para evaluar contenido, ';
+    }
+    
+    if (data.verification_analysis) {
+      explanation += 'verificación externa de fuentes y contexto. ';
+    }
+    
+    explanation += `La confianza del ${Math.round(data.confidence * 100)}% se basa en la convergencia de estos análisis.`;
+    
+    return explanation;
+  }
+
+  // Generar explicación para desarrolladores
+  generateDeveloperExplanation(data) {
+    let explanation = 'Implementación técnica: ';
+    
+    if (data.huggingface_analysis) {
+      explanation += `Hugging Face (${process.env.REACT_APP_HUGGINGFACE_WEIGHT || 0.3}): ${data.huggingface_analysis.model || 'Modelo BERT'}, `;
+    }
+    
+    if (data.gemini_analysis) {
+      explanation += `Gemini (${process.env.REACT_APP_GEMINI_WEIGHT || 0.5}): ${data.gemini_analysis.model || 'Gemini 1.5 Flash'}, `;
+    }
+    
+    explanation += `Análisis local (${process.env.REACT_APP_LOCAL_WEIGHT || 0.2}): métricas estadísticas. `;
+    explanation += `API endpoints: ${this.baseURL}/api/analyze/*`;
+    
+    return explanation;
+  }
+
+  // Extraer temas de investigación del texto
+  extractResearchTopics(data, originalText) {
+    const topics = [];
+    
+    // Extraer palabras clave del análisis
+    if (data.keywords) {
+      topics.push(...data.keywords.slice(0, 3));
+    }
+    
+    // Extraer temas del texto original
+    const commonTopics = ['inteligencia artificial', 'machine learning', 'deep learning', 'fake news', 'desinformación', 'verificación'];
+    for (const topic of commonTopics) {
+      if (originalText.toLowerCase().includes(topic)) {
+        topics.push(topic);
+      }
+    }
+    
+    // Si no hay temas específicos, usar temas generales
+    if (topics.length === 0) {
+      topics.push('detección de IA', 'análisis de contenido', 'verificación de información');
+    }
+    
+    return topics.slice(0, 3);
+  }
+
+  // Generar ID único para el análisis
+  generateAnalysisId() {
+    return `analysis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   // Análisis de imágenes usando Google Cloud Vision
