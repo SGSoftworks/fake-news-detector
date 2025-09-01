@@ -1,44 +1,27 @@
 {
-  "name": "fake-news-detector",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "name": "fake-news-detector-backend",
+  "version": "1.0.0",
+  "description": "Backend para detección de IA usando Hugging Face y Gemini",
+  "main": "server.js",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "build:prod": "vite build --mode production",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "preview": "vite preview",
-    "deploy:netlify": "npm run build:prod",
-    "vercel-build": "vite build",
-    "clean": "rm -rf dist node_modules package-lock.json && npm install",
-    "analyze": "npm run build && npx vite-bundle-analyzer dist",
-    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
-    "backend:dev": "cd backend && npm run dev",
-    "backend:start": "cd backend && npm start",
-    "backend:lint": "cd backend && npm run lint"
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "build": "echo 'No build step required'"
   },
   "dependencies": {
-    "axios": "^1.11.0",
-    "lucide-react": "^0.542.0",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
-    "react-router-dom": "^7.8.2"
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "axios": "^1.6.0",
+    "rate-limiter-flexible": "^2.4.2"
   },
   "devDependencies": {
-    "@eslint/js": "^9.33.0",
-    "@vitejs/plugin-react": "^5.0.0",
-    "autoprefixer": "^10.4.21",
-    "eslint": "^9.33.0",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.20",
-    "globals": "^16.3.0",
-    "postcss": "^8.5.6",
-    "prettier": "^3.2.5",
-    "tailwindcss": "^3.4.17",
-    "terser": "^5.29.2",
-    "vite": "^7.1.2",
-    "vite-bundle-analyzer": "^0.7.0"
-  }
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["ai-detection", "huggingface", "gemini", "fake-news"],
+  "author": "Juan Gomez",
+  "license": "MIT"
 }

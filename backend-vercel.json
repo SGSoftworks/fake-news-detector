@@ -1,0 +1,32 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/server.js"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production",
+    "CORS_ORIGIN": "https://fake-news-detector-backend-a20oqo3pp-jgsoftworks-projects.vercel.app",
+    "HUGGINGFACE_API_KEY": "@huggingface_api_key",
+    "GEMINI_API_KEY": "@gemini_api_key",
+    "GOOGLE_SEARCH_API_KEY": "@google_search_api_key",
+    "GOOGLE_CUSTOM_SEARCH_ID": "@google_custom_search_id"
+  },
+  "functions": {
+    "server.js": {
+      "maxDuration": 30
+    }
+  }
+}
