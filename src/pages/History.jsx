@@ -1,298 +1,314 @@
-import { useState, useEffect } from "react";
-import {
-  History as HistoryIcon,
-  Trash2,
-  Search,
-  AlertTriangle,
-  CheckCircle,
-  Calendar,
-  Clock,
-} from "lucide-react";
-import {
-  getAnalysisHistory,
-  clearAnalysisHistory,
-} from "../services/aiService";
+import React, { useState, useEffect } from "react";
+import historyService from "../services/historyService";
 
-const HistoryPage = () => {
-  const [history, setHistory] = useState([]);
-  const [filter, setFilter] = useState("all"); // all, fake, real
+const History = () => {
+  const [analyses, setAnalyses] = useState([]);
+  const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadHistory();
   }, []);
 
   const loadHistory = () => {
-    const savedHistory = getAnalysisHistory();
-    setHistory(savedHistory);
+    setLoading(true);
+    try {
+      const history = historyService.getHistory();
+      setAnalyses(history);
+      setStats(historyService.getHistoryStats());
+    } catch (error) {
+      console.error("Error al cargar historial:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredAnalyses = analyses.filter(analysis => {
+    // Filtro por tipo
+    let matchesFilter = true;
+    if (filter === "high-ai")
+      matchesFilter = (analysis.aiProbability || 0) > 70;
+    else if (filter === "high-human")
+      matchesFilter = (analysis.humanProbability || 0) > 70;
+    else if (filter !== "all") matchesFilter = analysis.type === filter;
+
+    // Filtro por búsqueda
+    let matchesSearch = true;
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      matchesSearch =
+        analysis.content?.toLowerCase().includes(searchLower) ||
+        analysis.type?.toLowerCase().includes(searchLower);
+    }
+
+    return matchesFilter && matchesSearch;
+  });
+
+  const getStatusColor = status => {
+    switch (status) {
+      case "completed":
+        return "bg-green-100 text-green-800";
+      case "processing":
+        return "bg-yellow-100 text-yellow-800";
+      case "failed":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
   };
 
   const handleClearHistory = () => {
     if (
       window.confirm("¿Estás seguro de que quieres eliminar todo el historial?")
     ) {
-      clearAnalysisHistory();
-      setHistory([]);
+      historyService.clearHistory();
+      loadHistory();
     }
   };
 
-  const filteredHistory = history.filter((item) => {
-    const matchesFilter =
-      filter === "all" ||
-      (filter === "fake" && item.isFake) ||
-      (filter === "real" && !item.isFake);
-
-    const matchesSearch =
-      searchTerm === "" ||
-      item.text?.toLowerCase().includes(searchTerm.toLowerCase());
-
-    return matchesFilter && matchesSearch;
-  });
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  const handleExportHistory = (format = "json") => {
+    const data = historyService.exportHistory(format);
+    const blob = new Blob([data], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `historial_analisis.${format}`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
-  const getResultIcon = (isFake) => {
-    return isFake ? AlertTriangle : CheckCircle;
-  };
-
-  const getResultColor = (isFake) => {
-    return isFake ? "text-danger-600" : "text-success-600";
-  };
-
-  const getResultText = (result) => {
-    if (result.verdict) {
-      return result.verdict;
+  const handleDeleteAnalysis = id => {
+    if (
+      window.confirm("¿Estás seguro de que quieres eliminar este análisis?")
+    ) {
+      historyService.deleteAnalysis(id);
+      loadHistory();
     }
-    return result.isFake ? "NO VERÍDICA" : "VERÍDICA";
+  };
+
+  const getTypeColor = type => {
+    switch (type) {
+      case "Texto":
+        return "bg-blue-100 text-blue-800";
+      case "Imagen":
+        return "bg-green-100 text-green-800";
+      case "Video":
+        return "bg-purple-100 text-purple-800";
+      case "Audio":
+        return "bg-orange-100 text-orange-800";
+      case "Código":
+        return "bg-gray-100 text-gray-800";
+      case "Académico":
+        return "bg-indigo-100 text-indigo-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Historial de Análisis
-          </h1>
-          <p className="text-gray-600">
-            Revisa todos los análisis de noticias que has realizado
-          </p>
-        </div>
-        <button
-          onClick={handleClearHistory}
-          className="btn-secondary flex items-center text-danger-600 hover:text-danger-700"
-        >
-          <Trash2 className="mr-2 h-4 w-4" />
-          Limpiar Historial
-        </button>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-slate-100">
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              Historial de Análisis
+            </h1>
+            <p className="text-lg text-gray-600">
+              Revisa todos tus análisis anteriores y resultados
+            </p>
+          </div>
 
-      {/* Filters */}
-      <div className="card">
-        <div className="flex flex-col md:flex-row gap-4">
-          {/* Search */}
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Buscar en el historial..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="input-field pl-10"
-              />
+          {/* Estadísticas */}
+          {stats && (
+            <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Estadísticas del Historial
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {stats.totalAnalyses}
+                  </div>
+                  <div className="text-sm text-gray-600">Total Análisis</div>
+                </div>
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">
+                    {stats.avgHumanProbability}%
+                  </div>
+                  <div className="text-sm text-gray-600">Promedio Humano</div>
+                </div>
+                <div className="text-center p-4 bg-red-50 rounded-lg">
+                  <div className="text-2xl font-bold text-red-600">
+                    {stats.avgAIProbability}%
+                  </div>
+                  <div className="text-sm text-gray-600">Promedio IA</div>
+                </div>
+                <div className="text-center p-4 bg-purple-50 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {stats.avgConfidence}%
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    Confianza Promedio
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Filtros y búsqueda */}
+          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <div className="flex flex-col lg:flex-row gap-4 mb-4">
+              <div className="flex-1">
+                <input
+                  type="text"
+                  placeholder="Buscar en el historial..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div className="flex gap-2">
+                <select
+                  value={filter}
+                  onChange={e => setFilter(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="all">Todos los tipos</option>
+                  <option value="Texto">Texto</option>
+                  <option value="Imagen">Imagen</option>
+                  <option value="Video">Video</option>
+                  <option value="Audio">Audio</option>
+                  <option value="Código">Código</option>
+                  <option value="Académico">Académico</option>
+                  <option value="high-ai">Alta Probabilidad IA</option>
+                  <option value="high-human">Alta Probabilidad Humano</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Botones de acción */}
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={handleClearHistory}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Limpiar Historial
+              </button>
+              <button
+                onClick={() => handleExportHistory("json")}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Exportar JSON
+              </button>
+              <button
+                onClick={() => handleExportHistory("csv")}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                Exportar CSV
+              </button>
+              <button
+                onClick={() => handleExportHistory("pdf")}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                Exportar PDF
+              </button>
             </div>
           </div>
 
-          {/* Filter */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => setFilter("all")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === "all"
-                  ? "bg-primary-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              Todos
-            </button>
-            <button
-              onClick={() => setFilter("fake")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === "fake"
-                  ? "bg-danger-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              Falsas
-            </button>
-            <button
-              onClick={() => setFilter("real")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === "real"
-                  ? "bg-success-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              Confiables
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Results */}
-      {filteredHistory.length === 0 ? (
-        <div className="card text-center py-12">
-          <HistoryIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            {history.length === 0
-              ? "No hay análisis en el historial"
-              : "No se encontraron resultados"}
-          </h3>
-          <p className="text-gray-600">
-            {history.length === 0
-              ? "Realiza tu primer análisis de noticias para ver el historial aquí."
-              : "Intenta cambiar los filtros o términos de búsqueda."}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {filteredHistory.map((item) => {
-            const Icon = getResultIcon(item.isFake);
-            return (
+          {/* Lista de análisis */}
+          <div className="space-y-4">
+            {filteredAnalyses.map(analysis => (
               <div
-                key={item.id}
-                className="card hover:shadow-lg transition-shadow"
+                key={analysis.id}
+                className="bg-white rounded-lg shadow-lg p-6"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-3">
-                      <Icon
-                        className={`h-6 w-6 ${getResultColor(item.isFake)}`}
-                      />
-                      <div>
-                        <h3 className="font-semibold text-gray-900">
-                          {getResultText(item)}
-                        </h3>
-                        <p
-                          className={`text-sm font-medium ${getResultColor(
-                            item.isFake
-                          )}`}
-                        >
-                          {item.confidence}% de confianza
-                        </p>
-                      </div>
-                    </div>
-
-                    {item.text && (
-                      <p className="text-gray-700 mb-3 line-clamp-2">
-                        {item.text.length > 200
-                          ? `${item.text.substring(0, 200)}...`
-                          : item.text}
-                      </p>
-                    )}
-
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <div className="flex items-center space-x-1">
-                        <Calendar className="h-4 w-4" />
-                        <span>{formatDate(item.savedAt)}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Clock className="h-4 w-4" />
-                        <span>{item.analysisTime}ms</span>
-                      </div>
-                      <span>•</span>
-                      <span>{item.textLength} caracteres</span>
-                      <span>•</span>
-                      <span>{item.model}</span>
-                    </div>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+                  <div className="flex items-center space-x-4 mb-4 md:mb-0">
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${getTypeColor(analysis.type)}`}
+                    >
+                      {analysis.type}
+                    </span>
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(analysis.status)}`}
+                    >
+                      {analysis.status === "completed"
+                        ? "Completado"
+                        : analysis.status === "processing"
+                          ? "Procesando"
+                          : "Fallido"}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {new Date(analysis.date).toLocaleDateString("es-ES")}
                   </div>
                 </div>
 
-                {/* Factors */}
-                {item.factors && item.factors.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <h4 className="text-sm font-medium text-gray-900 mb-2">
-                      Factores identificados:
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {item.factors.slice(0, 3).map((factor, index) => (
-                        <span
-                          key={index}
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            factor.impact === "high"
-                              ? "bg-danger-100 text-danger-700"
-                              : factor.impact === "medium"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-success-100 text-success-700"
-                          }`}
-                        >
-                          {factor.name}
-                        </span>
-                      ))}
-                      {item.factors.length > 3 && (
-                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                          +{item.factors.length - 3} más
-                        </span>
-                      )}
+                <div className="mb-4">
+                  <h3 className="font-semibold text-gray-900 mb-2">
+                    Contenido Analizado
+                  </h3>
+                  <p className="text-gray-600 text-sm">{analysis.content}</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-red-50 rounded-lg">
+                    <div className="text-2xl font-bold text-red-600">
+                      {analysis.aiProbability}%
+                    </div>
+                    <div className="text-sm text-gray-600">Probabilidad IA</div>
+                  </div>
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">
+                      {analysis.humanProbability}%
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Probabilidad Humano
                     </div>
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {Math.round(analysis.confidence * 100)}%
+                    </div>
+                    <div className="text-sm text-gray-600">Confianza</div>
+                  </div>
+                </div>
 
-      {/* Stats */}
-      {history.length > 0 && (
-        <div className="card bg-gray-50">
-          <h3 className="font-semibold text-gray-900 mb-4">
-            Estadísticas del Historial
-          </h3>
-          <div className="grid md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-gray-900">
-                {history.length}
+                <div className="mt-4 flex justify-end space-x-2">
+                  <button className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-800">
+                    Ver Detalles
+                  </button>
+                  <button className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800">
+                    Descargar Reporte
+                  </button>
+                  <button
+                    onClick={() => handleDeleteAnalysis(analysis.id)}
+                    className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-800"
+                  >
+                    Eliminar
+                  </button>
+                </div>
               </div>
-              <div className="text-sm text-gray-600">Total de análisis</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-danger-600">
-                {history.filter((item) => item.isFake).length}
-              </div>
-              <div className="text-sm text-gray-600">Noticias falsas</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-success-600">
-                {history.filter((item) => !item.isFake).length}
-              </div>
-              <div className="text-sm text-gray-600">Noticias confiables</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary-600">
-                {Math.round(
-                  history.reduce((acc, item) => acc + item.confidence, 0) /
-                    history.length
-                )}
-                %
-              </div>
-              <div className="text-sm text-gray-600">Confianza promedio</div>
-            </div>
+            ))}
           </div>
+
+          {filteredAnalyses.length === 0 && (
+            <div className="text-center py-12">
+              <div className="text-gray-400 text-6xl mb-4">📊</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                No hay análisis para mostrar
+              </h3>
+              <p className="text-gray-600">
+                Realiza tu primer análisis para ver el historial aquí
+              </p>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };
 
-export default HistoryPage;
+export default History;

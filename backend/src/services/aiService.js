@@ -336,21 +336,23 @@ const processHuggingFaceResponse = data => {
     factors: [
       {
         name: "Análisis de Sentimiento (HuggingFace)",
-        description: `Sentimiento ${sentiment} detectado con ${confidence}% de precisión usando modelo BERT multilingual. ${isFake ? 'Sentimiento negativo puede indicar contenido manipulador.' : 'Sentimiento neutral/positivo sugiere contenido objetivo.'}`,
+        description: `Sentimiento ${sentiment} detectado con ${confidence}% de precisión usando modelo BERT multilingual. ${isFake ? "Sentimiento negativo puede indicar contenido manipulador." : "Sentimiento neutral/positivo sugiere contenido objetivo."}`,
         impact: isFake ? "high" : "medium",
         technicalDetails: {
           model: "BERT Multilingual Sentiment",
           sentimentScore: confidence,
-          classification: sentiment
-        }
+          classification: sentiment,
+        },
       },
     ],
-    explanation: `HuggingFace (BERT) analizó el sentimiento del texto y detectó ${sentiment} con ${confidence}% de confianza. ${isFake ? 'El sentimiento negativo/tóxico puede indicar contenido manipulador o sesgado típico de desinformación.' : 'El sentimiento neutral/positivo es consistente con contenido informativo objetivo.'}`,
+    explanation: `HuggingFace (BERT) analizó el sentimiento del texto y detectó ${sentiment} con ${confidence}% de confianza. ${isFake ? "El sentimiento negativo/tóxico puede indicar contenido manipulador o sesgado típico de desinformación." : "El sentimiento neutral/positivo es consistente con contenido informativo objetivo."}`,
     technicalSummary: {
       sentimentAnalysis: { sentiment, confidence },
       modelUsed: "nlptown/bert-base-multilingual-uncased-sentiment",
-      overallAssessment: isFake ? "Sentimiento sospechoso" : "Sentimiento normal"
-    }
+      overallAssessment: isFake
+        ? "Sentimiento sospechoso"
+        : "Sentimiento normal",
+    },
   };
 };
 
@@ -485,12 +487,12 @@ INSTRUCCIONES CRÍTICAS:
         safetySettings: config.gemini.safetySettings || [
           {
             category: "HARM_CATEGORY_HATE_SPEECH",
-            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            threshold: "BLOCK_MEDIUM_AND_ABOVE",
           },
           {
-            category: "HARM_CATEGORY_DANGEROUS_CONTENT", 
-            threshold: "BLOCK_MEDIUM_AND_ABOVE"
-          }
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE",
+          },
         ],
         generationConfig: config.gemini.generationConfig || {
           temperature: 0.2,
@@ -513,14 +515,14 @@ INSTRUCCIONES CRÍTICAS:
     }
 
     const content = response.data.candidates[0].content.parts[0].text;
-    
+
     try {
       // Limpiar y parsear JSON
       const cleanContent = content
         .replace(/```json/gi, "")
         .replace(/```/g, "")
         .trim();
-      
+
       const result = JSON.parse(cleanContent);
 
       // Validar y normalizar respuesta con nueva clasificación
@@ -531,11 +533,14 @@ INSTRUCCIONES CRÍTICAS:
         classification: result.classification || {
           category: result.isFake ? "false_news" : "real_news",
           reasoning: "Clasificación basada en análisis general",
-          confidence: result.confidence || 50
+          confidence: result.confidence || 50,
         },
-        explanation: result.explanation || result.summary || "Análisis completado",
+        explanation:
+          result.explanation || result.summary || "Análisis completado",
         factors: Array.isArray(result.factors) ? result.factors : [],
-        recommendations: Array.isArray(result.recommendations) ? result.recommendations : [],
+        recommendations: Array.isArray(result.recommendations)
+          ? result.recommendations
+          : [],
         summary: result.summary || result.explanation || "",
         webVerification: result.webVerification || null,
         source: "Google Gemini",
@@ -544,52 +549,59 @@ INSTRUCCIONES CRÍTICAS:
 
       console.log("✅ Google Gemini 2.0 analysis completed");
       return finalResult;
-
     } catch (parseError) {
       console.error("❌ Error parseando respuesta de Gemini:", parseError);
-      
+
       // Fallback: análisis básico del texto de respuesta
-      const isFake = content.toLowerCase().includes("falsa") || 
-                     content.toLowerCase().includes("no confiable") ||
-                     content.toLowerCase().includes("engañosa");
-      
-    return {
+      const isFake =
+        content.toLowerCase().includes("falsa") ||
+        content.toLowerCase().includes("no confiable") ||
+        content.toLowerCase().includes("engañosa");
+
+      return {
         isFake,
         confidence: 50,
-        explanation: "El análisis se completó pero hubo problemas al procesar la respuesta detallada. Se recomienda verificar la información con fuentes adicionales.",
+        explanation:
+          "El análisis se completó pero hubo problemas al procesar la respuesta detallada. Se recomienda verificar la información con fuentes adicionales.",
         factors: [
           {
             name: "Análisis técnico limitado",
-            description: "No se pudo procesar completamente la respuesta del sistema de IA",
-            impact: "medium"
-          }
+            description:
+              "No se pudo procesar completamente la respuesta del sistema de IA",
+            impact: "medium",
+          },
         ],
         recommendations: [
           "Verifica la información en fuentes oficiales",
           "Busca la misma noticia en medios reconocidos",
-          "Consulta fact-checkers especializados"
+          "Consulta fact-checkers especializados",
         ],
         summary: "Análisis completado con limitaciones técnicas",
-      source: "Google Gemini",
-      model: config.gemini.model,
-    };
+        source: "Google Gemini",
+        model: config.gemini.model,
+      };
     }
-
   } catch (error) {
     console.error("❌ Google Gemini API error:", error.message);
-    
+
     // Errores específicos con mensajes claros
     if (error.response?.status === 429) {
-      throw new Error("El servicio está temporalmente sobrecargado. Intenta de nuevo en unos minutos.");
+      throw new Error(
+        "El servicio está temporalmente sobrecargado. Intenta de nuevo en unos minutos."
+      );
     }
     if (error.response?.status === 403) {
       throw new Error("Error de autenticación con el servicio de IA.");
     }
     if (error.response?.status === 400) {
-      throw new Error("El contenido no pudo ser analizado. Intenta con un texto diferente.");
+      throw new Error(
+        "El contenido no pudo ser analizado. Intenta con un texto diferente."
+      );
     }
-    
-    throw new Error("No se pudo completar el análisis con IA. Intenta de nuevo más tarde.");
+
+    throw new Error(
+      "No se pudo completar el análisis con IA. Intenta de nuevo más tarde."
+    );
   }
 };
 
@@ -761,8 +773,8 @@ const calculateAIAnalysis = (availableResults, allFactors) => {
         result.source === "gemini"
           ? 0.6
           : result.source === "huggingface"
-          ? 0.3
-          : 0.1;
+            ? 0.3
+            : 0.1;
       return sum + result.confidence * weight;
     }, 0) /
     availableResults.reduce((sum, result) => {
@@ -770,8 +782,8 @@ const calculateAIAnalysis = (availableResults, allFactors) => {
         result.source === "gemini"
           ? 0.6
           : result.source === "huggingface"
-          ? 0.3
-          : 0.1;
+            ? 0.3
+            : 0.1;
       return sum + weight;
     }, 0);
 
@@ -892,9 +904,11 @@ const generateDetailedExplanation = (
   ) {
     // Artículos relacionados encontrados
     explanation += `ARTÍCULOS RELACIONADOS ENCONTRADOS:\n`;
-    verificationResults.relatedArticles.slice(0, 3).forEach((article, index) => {
-      explanation += `${index + 1}. ${article.title || article.url}\n`;
-    });
+    verificationResults.relatedArticles
+      .slice(0, 3)
+      .forEach((article, index) => {
+        explanation += `${index + 1}. ${article.title || article.url}\n`;
+      });
     explanation += "\n";
   }
 
@@ -904,13 +918,13 @@ const generateDetailedExplanation = (
     verificationResults.recommendations &&
     verificationResults.recommendations.length > 0
   ) {
-      // Recomendaciones
-      explanation += `RECOMENDACIONES:\n`;
-      verificationResults.recommendations.forEach((rec, index) => {
-        explanation += `${index + 1}. ${rec}\n`;
-      });
-      explanation += "\n";
-    }
+    // Recomendaciones
+    explanation += `RECOMENDACIONES:\n`;
+    verificationResults.recommendations.forEach((rec, index) => {
+      explanation += `${index + 1}. ${rec}\n`;
+    });
+    explanation += "\n";
+  }
 
   // Explicación final mejorada
   if (isFake) {

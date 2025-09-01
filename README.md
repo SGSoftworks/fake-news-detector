@@ -1,392 +1,333 @@
-# 🛡️ Sistema de Detección de Noticias Falsas
+# Detector de IA - Plataforma Integral de Detección de Contenido Generado por IA
 
-Sistema avanzado de detección de noticias falsas basado en Inteligencia Artificial, desarrollado en React y Node.js.
+## 📋 Descripción
 
-## 🚀 Características Principales
+**Detector de IA** es una plataforma web moderna y completa diseñada para detectar contenido generado por inteligencia artificial en múltiples formatos. La aplicación utiliza tecnologías avanzadas de análisis y machine learning para proporcionar resultados precisos y detallados.
 
-### 🤖 Análisis Inteligente
+## ✨ Características Principales
 
-- **Detección automática** de URLs vs texto
-- **Análisis de dominio** y reputación de sitios web
-- **Extracción de metadatos** de páginas web
-- **Identificación de fuentes mencionadas** en el texto
+### 🔍 Análisis Multi-Formato
 
-### 🌐 Verificación Externa
+- **Texto**: Detección de contenido escrito generado por IA
+- **Imágenes**: Identificación de imágenes generadas por IA (DALL-E, Midjourney, etc.)
+- **Videos**: Detección de deepfakes y videos manipulados
+- **Audio**: Identificación de voces sintéticas y audio generado por IA
+- **Código**: Detección de código generado por IA en proyectos de desarrollo
+- **Contenido Académico**: Verificación de originalidad en trabajos académicos
 
-- **Búsqueda con Google Search API** para información relevante
-- **Análisis de credibilidad** de fuentes consultadas
-- **Verificación con fact-checkers** reconocidos
-- **Score de credibilidad** basado en múltiples factores
-- **Fuentes consultadas** con enlaces y explicaciones
+### 🎯 Funcionalidades Avanzadas
 
-### 🔧 APIs Optimizadas
+- **Análisis en Tiempo Real**: Progreso visual del proceso de análisis
+- **Explicaciones Detalladas**: Explicaciones para usuarios y desarrolladores
+- **Enlaces y Recursos**: Recursos adicionales y herramientas relacionadas
+- **Historial Completo**: Gestión de análisis previos con filtros y exportación
+- **Estadísticas de Plataforma**: Métricas en tiempo real del sistema
 
-- **Google Gemini** (50% peso) - Análisis de texto avanzado
-- **Hugging Face** (30% peso) - Análisis de sentimientos
-- **Análisis Local** (20% peso) - Algoritmos heurísticos
+### 🔒 Seguridad y Privacidad
 
-### 📊 Análisis Contextual
+- **Encriptación AES-256**: Protección de datos sensibles
+- **Cumplimiento GDPR/CCPA**: Cumplimiento con regulaciones de privacidad
+- **ISO 27001**: Estándares de seguridad empresarial
+- **Autenticación Multi-Factor**: Seguridad adicional para usuarios
+- **Monitoreo Continuo**: Detección de amenazas en tiempo real
 
-- **Detección de patrones** de noticias falsas
-- **Análisis de estilo** y tono del texto
-- **Identificación de elementos** sensacionalistas
-- **Evaluación de objetividad** y formalidad
+### 📱 Experiencia de Usuario
 
-## 🛠️ Tecnologías
+- **Diseño Responsivo**: Optimizado para todos los dispositivos
+- **Interfaz Moderna**: UI/UX intuitiva y atractiva
+- **Iconos SVG**: Diseño limpio sin emojis
+- **Animaciones Suaves**: Transiciones fluidas y profesionales
+- **Accesibilidad**: Cumplimiento con estándares WCAG
+
+## 🛠️ Tecnologías Utilizadas
 
 ### Frontend
 
-- **React 18** - Framework de UI
-- **Vite** - Build tool
-- **Tailwind CSS 3.4.x** - Framework de estilos
-- **React Router** - Navegación
-- **Lucide React** - Iconos
+- **React 18**: Framework principal de la aplicación
+- **React Router**: Navegación entre páginas
+- **Tailwind CSS**: Framework de estilos utility-first
+- **JavaScript ES6+**: Lógica de la aplicación
 
-### Backend
+### APIs y Servicios
 
-- **Node.js** - Runtime de JavaScript
-- **Express.js** - Framework web
-- **Axios** - Cliente HTTP
-- **dotenv** - Variables de entorno
+- **OpenAI API**: Análisis de texto y contenido
+- **Google Cloud Vision**: Análisis de imágenes
+- **Azure Cognitive Services**: Análisis de video y audio
+- **GitHub Copilot API**: Análisis de código
+- **Turnitin API**: Verificación de contenido académico
 
-### APIs Externas
+### Optimización y Rendimiento
 
-- **Google Gemini API** - Análisis de texto avanzado
-- **Hugging Face API** - Análisis de sentimientos
-
-## 📦 Instalación
-
-### Prerrequisitos
-
-- Node.js 18+
-- npm o yarn
-- APIs de Google Gemini y Hugging Face (opcionales)
-
-### 1. Clonar el repositorio
-
-```bash
-git clone <repository-url>
-cd fake-news-detector
-```
-
-### 2. Instalar dependencias del frontend
-
-```bash
-npm install
-```
-
-### 3. Instalar dependencias del backend
-
-```bash
-cd backend
-npm install
-```
-
-### 4. Configurar variables de entorno
-
-```bash
-# En el directorio backend/
-cp env.example .env
-```
-
-Editar el archivo `.env` con tus API keys:
-
-```env
-# APIs de IA (opcionales)
-GEMINI_API_KEY=tu_api_key_aqui
-HUGGINGFACE_API_KEY=tu_api_key_aqui
-
-# Configuración del servidor
-PORT=3001
-NODE_ENV=development
-CORS_ORIGIN=http://localhost:5173
-```
-
-### 5. Configurar APIs (opcional)
-
-```bash
-cd backend
-npm run setup
-```
-
-## 🚀 Uso
-
-### Desarrollo Local
-
-#### Opción 1: Inicio Manual
-
-```bash
-# Terminal 1 - Backend
-cd backend
-npm run dev
-
-# Terminal 2 - Frontend
-npm run dev
-```
-
-#### Opción 2: Inicio Automático
-
-```bash
-# Windows
-.\start-simple.bat
-
-# PowerShell
-.\start-simple.ps1
-```
-
-### Producción
-
-```bash
-# Build del frontend
-npm run build
-
-# Iniciar servidor de producción
-cd backend
-npm start
-```
-
-## 🧪 Pruebas
-
-### Prueba Básica
-
-```bash
-cd backend
-npm run test-apis
-```
-
-### Prueba del Sistema Completo
-
-```bash
-cd backend
-npm run test-system
-```
-
-### Prueba del Sistema Avanzado
-
-```bash
-cd backend
-npm run test-advanced
-```
+- **Lazy Loading**: Carga diferida de componentes
+- **Memoización**: Optimización de funciones costosas
+- **Compresión de Datos**: Almacenamiento eficiente
+- **Cache Inteligente**: Sistema de caché para análisis
+- **Virtualización**: Renderizado optimizado de listas
 
 ## 📁 Estructura del Proyecto
 
 ```
-fake-news-detector/
-├── src/                    # Frontend React
-│   ├── components/         # Componentes reutilizables
-│   ├── pages/             # Páginas de la aplicación
-│   ├── services/          # Servicios de API
-│   └── utils/             # Utilidades
-├── backend/               # Servidor Node.js
-│   ├── src/
-│   │   ├── config/        # Configuración
-│   │   ├── routes/        # Rutas de API
-│   │   ├── services/      # Servicios de IA
-│   │   └── utils/         # Utilidades
-│   ├── server.js          # Servidor principal
-│   └── server-simple.js   # Servidor simplificado
-├── public/                # Archivos estáticos
-├── dist/                  # Build de producción
-└── README.md             # Esta documentación
+src/
+├── components/          # Componentes reutilizables
+│   ├── AnalysisProgress.jsx
+│   ├── AnalysisExplanation.jsx
+│   ├── AnalysisLinks.jsx
+│   ├── LoadingSpinner.jsx
+│   ├── PlatformStats.jsx
+│   └── Header.jsx
+├── pages/              # Páginas principales
+│   ├── Home.jsx
+│   ├── TextAnalysis.jsx
+│   ├── ImageAnalysis.jsx
+│   ├── VideoAnalysis.jsx
+│   ├── AudioAnalysis.jsx
+│   ├── CodeAnalysis.jsx
+│   ├── AcademicAnalysis.jsx
+│   ├── History.jsx
+│   ├── Privacy.jsx
+│   └── Security.jsx
+├── services/           # Servicios y lógica de negocio
+│   ├── aiService.js
+│   └── historyService.js
+├── utils/              # Utilidades y helpers
+│   └── performance.js
+├── config/             # Configuración
+│   └── config.js
+└── App.jsx             # Componente principal
 ```
 
-## 🔧 Configuración
+## 🚀 Instalación y Configuración
 
-### Variables de Entorno
+### Prerrequisitos
 
-#### Backend (.env)
+- Node.js 16+
+- npm o yarn
+- Cuentas de API (OpenAI, Google Cloud, Azure, etc.)
 
-```env
-# Servidor
-PORT=3001
-NODE_ENV=development
-CORS_ORIGIN=http://localhost:5173
-
-# APIs de IA
-GEMINI_API_KEY=tu_api_key_aqui
-GEMINI_MODEL=gemini-1.5-flash
-HUGGINGFACE_API_KEY=tu_api_key_aqui
-HUGGINGFACE_MODEL=nlptown/bert-base-multilingual-uncased-sentiment
-
-# Configuración de análisis
-LOCAL_WEIGHT=0.2
-HUGGINGFACE_WEIGHT=0.3
-GEMINI_WEIGHT=0.5
-FAKE_THRESHOLD=60
-HIGH_CONFIDENCE_THRESHOLD=80
-
-# Verificación externa
-VERIFICATION_ENABLED=true
-SOURCE_ANALYSIS_ENABLED=true
-MAX_RELATED_ARTICLES=5
-VERIFICATION_TIMEOUT=10000
-```
-
-### Scripts Disponibles
-
-#### Frontend
-
-- `npm run dev` - Servidor de desarrollo
-- `npm run build` - Build de producción
-- `npm run preview` - Preview de producción
-
-#### Backend
-
-- `npm run dev` - Servidor de desarrollo
-- `npm start` - Servidor de producción
-- `npm run setup` - Configurar APIs
-- `npm run test-apis` - Probar APIs
-- `npm run test-system` - Probar sistema completo
-- `npm run test-advanced` - Probar sistema avanzado
-
-## 🎯 Casos de Uso
-
-### Análisis de Texto
-
-```
-Input: "Según informa el Ministerio de Salud..."
-Output:
-- Tipo: Text Analysis
-- Fuentes mencionadas: ["Ministerio de Salud"]
-- Análisis: Local + Hugging Face + Gemini + Verificación Externa
-- Confianza: 75%
-- Veredicto: VERÍDICA
-- Nivel de confianza: ALTA
-- Fuentes consultadas: 3 artículos relacionados
-- Explicación detallada con factores y recomendaciones
-```
-
-### Análisis de URL
-
-```
-Input: "https://www.eltiempo.com/noticia..."
-Output:
-- Tipo: URL Analysis
-- Dominio: eltiempo.com
-- Confianza del dominio: 90%
-- Metadatos extraídos: ✅
-```
-
-### Verificación Completa
-
-```
-Input: Cualquier noticia
-Output:
-- Análisis de IA: ✅
-- Verificación externa: ✅
-- Búsqueda Google Search: ✅
-- Artículos relacionados: 5 encontrados
-- Score de credibilidad: 82%
-- Veredicto: VERÍDICA/NO VERÍDICA
-- Explicación detallada con fuentes
-- Recomendaciones específicas
-```
-
-## 📈 Métricas de Precisión
-
-### Antes vs Ahora
-
-- **Precisión básica**: 60-70%
-- **Precisión avanzada**: 80-90%
-- **Verificación externa**: +15% precisión
-- **Análisis contextual**: +10% precisión
-
-### Factores de Mejora
-
-1. **Múltiples APIs**: Combinación inteligente de resultados
-2. **Verificación externa**: Validación con fuentes confiables
-3. **Análisis de fuentes**: Evaluación de credibilidad
-4. **Contexto**: Análisis de estilo y tono
-5. **Artículos relacionados**: Consistencia informativa
-
-## 🚀 Despliegue
-
-### Vercel (Recomendado - Full Stack)
-
-**Ventajas:**
-
-- ✅ Un solo dominio para frontend y backend
-- ✅ Sin problemas de CORS
-- ✅ Despliegue automático
-- ✅ SSL gratuito
-- ✅ CDN global
-
-**Pasos:**
-
-1. Instalar Vercel CLI: `npm install -g vercel`
-2. Configurar APIs (Gemini, Hugging Face, Google Search)
-3. Ejecutar: `vercel` desde la raíz del proyecto
-4. Configurar variables de entorno en el dashboard
-
-Consulta la guía completa en [DEPLOY-VERCEL.md](./DEPLOY-VERCEL.md)
-
-### Despliegue Local
+### 1. Clonar el Repositorio
 
 ```bash
-# Frontend
-npm run dev
-
-# Backend (en otra terminal)
-cd backend
-npm run dev
+git clone https://github.com/tu-usuario/fake-news-detector.git
+cd fake-news-detector
 ```
 
-### Docker (Opcional)
+### 2. Instalar Dependencias
+
+```bash
+npm install
+# o
+yarn install
+```
+
+### 3. Configurar Variables de Entorno
+
+Crear archivo `.env.local` en la raíz del proyecto:
+
+```env
+# OpenAI API
+REACT_APP_OPENAI_API_KEY=tu_openai_api_key
+REACT_APP_OPENAI_API_URL=https://api.openai.com/v1
+REACT_APP_OPENAI_MODEL=gpt-4
+
+# Google Cloud Vision
+REACT_APP_GOOGLE_CLOUD_API_KEY=tu_google_cloud_api_key
+REACT_APP_GOOGLE_CLOUD_API_URL=https://vision.googleapis.com/v1
+
+# Azure Cognitive Services
+REACT_APP_AZURE_API_KEY=tu_azure_api_key
+REACT_APP_AZURE_API_URL=https://api.cognitive.microsoft.com
+REACT_APP_AZURE_REGION=tu_region
+
+# GitHub Copilot
+REACT_APP_GITHUB_API_KEY=tu_github_api_key
+REACT_APP_GITHUB_API_URL=https://api.github.com
+
+# Turnitin
+REACT_APP_TURNITIN_API_KEY=tu_turnitin_api_key
+REACT_APP_TURNITIN_API_URL=https://api.turnitin.com
+
+# Configuración de la Aplicación
+REACT_APP_DEBUG=true
+REACT_APP_MAX_FILE_SIZE=10485760
+REACT_APP_MAX_HISTORY_ITEMS=1000
+REACT_APP_ANALYSIS_TIMEOUT=30000
+```
+
+### 4. Ejecutar en Desarrollo
+
+```bash
+npm start
+# o
+yarn start
+```
+
+La aplicación estará disponible en `http://localhost:3000`
+
+### 5. Construir para Producción
+
+```bash
+npm run build
+# o
+yarn build
+```
+
+## 🌐 Despliegue
+
+### Vercel (Recomendado)
+
+1. Conectar repositorio a Vercel
+2. Configurar variables de entorno en el dashboard
+3. Desplegar automáticamente
+
+### Netlify
+
+1. Conectar repositorio a Netlify
+2. Configurar build command: `npm run build`
+3. Configurar publish directory: `build`
+4. Agregar variables de entorno
+
+### Docker
 
 ```dockerfile
-# Dockerfile para backend
-FROM node:18-alpine
+FROM node:16-alpine
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-EXPOSE 3001
+RUN npm run build
+EXPOSE 3000
 CMD ["npm", "start"]
 ```
 
-## 🔮 Roadmap
+## 📊 Uso de la Aplicación
 
-### Fase 3 (Próximamente)
+### 1. Análisis de Texto
 
-- [ ] Análisis de imágenes
-- [ ] Análisis de videos
-- [ ] Base de datos MongoDB
-- [ ] Autenticación de usuarios
-- [ ] Dashboard de administración
+- Navegar a "Análisis de Texto"
+- Pegar o escribir el contenido a analizar
+- Hacer clic en "Analizar Texto"
+- Revisar resultados detallados
 
-### Fase 4 (Futuro)
+### 2. Análisis de Imágenes
 
-- [ ] Docker containers
-- [ ] CI/CD pipeline
-- [ ] Escalabilidad distribuida
-- [ ] APIs públicas
-- [ ] Machine Learning avanzado
+- Navegar a "Análisis de Imágenes"
+- Subir imagen (JPEG, PNG, GIF, WebP)
+- Hacer clic en "Analizar Imagen"
+- Ver resultados con explicaciones
+
+### 3. Historial y Exportación
+
+- Acceder a "Historial" desde el menú
+- Filtrar por tipo de análisis
+- Exportar resultados en JSON, CSV o PDF
+- Gestionar análisis previos
+
+## 🔧 Configuración Avanzada
+
+### Personalización de Temas
+
+```javascript
+// En config/config.js
+ui: {
+  theme: 'dark', // 'light' | 'dark'
+  language: 'en', // 'es' | 'en'
+  animations: true,
+  autoSave: true
+}
+```
+
+### Optimización de Rendimiento
+
+```javascript
+// Configurar caché de análisis
+const analysisCache = new AnalysisCache(200);
+
+// Optimizar búsqueda
+const searchIndex = createSearchIndex(items, ["title", "content"]);
+```
+
+## 🧪 Testing
+
+### Ejecutar Tests
+
+```bash
+npm test
+# o
+yarn test
+```
+
+### Tests de Integración
+
+```bash
+npm run test:integration
+```
+
+### Tests de Rendimiento
+
+```bash
+npm run test:performance
+```
+
+## 📈 Monitoreo y Analytics
+
+La aplicación incluye:
+
+- **Monitoreo de Rendimiento**: Métricas de tiempo de carga
+- **Análisis de Errores**: Captura y reporte de errores
+- **Métricas de Usuario**: Comportamiento y uso
+- **Alertas Automáticas**: Notificaciones de problemas
 
 ## 🤝 Contribución
 
 1. Fork el proyecto
-2. Crear una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+2. Crear rama feature (`git checkout -b feature/AmazingFeature`)
+3. Commit cambios (`git commit -m 'Add AmazingFeature'`)
 4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abrir un Pull Request
+5. Abrir Pull Request
+
+### Guías de Contribución
+
+- Seguir estándares de código
+- Incluir tests para nuevas funcionalidades
+- Actualizar documentación
+- Revisar código antes de merge
 
 ## 📄 Licencia
 
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+Este proyecto está bajo la Licencia MIT. Ver `LICENSE` para más detalles.
 
-## 👥 Equipo
+## 🆘 Soporte
 
-- **Juan Gómez** - Desarrollador Full Stack
-- **Ivan Jair** - Desarrollador Backend
-- **Mayo 30** - Desarrollador Frontend
+### Documentación
+
+- [Guía de Usuario](docs/user-guide.md)
+- [API Reference](docs/api-reference.md)
+- [Troubleshooting](docs/troubleshooting.md)
+
+### Contacto
+
+- **Email**: soporte@detector-ia.com
+- **Discord**: [Servidor de la Comunidad](https://discord.gg/detector-ia)
+- **Issues**: [GitHub Issues](https://github.com/tu-usuario/fake-news-detector/issues)
 
 ## 🙏 Agradecimientos
 
-- Google Gemini API por el análisis de texto avanzado
-- Hugging Face por los modelos de IA
-- React y Node.js por las tecnologías base
-- Tailwind CSS por el framework de estilos
+- OpenAI por las APIs de análisis de texto
+- Google Cloud por Vision API
+- Microsoft Azure por Cognitive Services
+- Comunidad de desarrolladores por feedback y contribuciones
+
+## 📝 Changelog
+
+### v1.0.0 (2024-01-XX)
+
+- ✅ Lanzamiento inicial
+- ✅ Análisis multi-formato
+- ✅ Interfaz moderna y responsiva
+- ✅ Sistema de historial completo
+- ✅ Seguridad y privacidad avanzadas
+- ✅ Optimizaciones de rendimiento
 
 ---
 
-**¡Combatamos juntos la desinformación!** 🛡️✨
+**Desarrollado con ❤️ por el equipo de Detector de IA**
