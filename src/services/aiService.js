@@ -1,46 +1,68 @@
 // Servicio principal para APIs de detección de IA
 class AIService {
   constructor() {
-    // Por ahora, usamos solo datos mock para evitar errores de CORS
-    this.useMockData = true;
+    // Configuración para conectar con el backend real
+    this.baseURL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
+    this.useMockData = !process.env.REACT_APP_HUGGINGFACE_ENABLED || 
+                       !process.env.REACT_APP_GEMINI_ENABLED;
     
     // Configuración para futuras integraciones de APIs reales
-    this.baseURL = process.env.REACT_APP_API_BASE_URL || "https://api.detector-ia.com";
     this.openaiKey = process.env.REACT_APP_OPENAI_API_KEY;
     this.googleKey = process.env.REACT_APP_GOOGLE_CLOUD_API_KEY;
     this.azureKey = process.env.REACT_APP_AZURE_API_KEY;
     this.azureEndpoint = process.env.REACT_APP_AZURE_ENDPOINT;
+    
+    // Configuración del backend
+    this.huggingfaceEnabled = process.env.REACT_APP_HUGGINGFACE_ENABLED === 'true';
+    this.geminiEnabled = process.env.REACT_APP_GEMINI_ENABLED === 'true';
+    this.verificationEnabled = process.env.REACT_APP_VERIFICATION_ENABLED === 'true';
+    
+    console.log('AIService configurado:', {
+      baseURL: this.baseURL,
+      useMockData: this.useMockData,
+      huggingfaceEnabled: this.huggingfaceEnabled,
+      geminiEnabled: this.geminiEnabled,
+      verificationEnabled: this.verificationEnabled
+    });
   }
 
-  // Análisis de texto usando OpenAI
+  // Análisis de texto usando el backend real
   async analyzeText(text) {
     try {
-      // Por ahora, usamos solo datos mock
-      if (this.useMockData) {
-        return this.getMockTextAnalysis();
+      // Si el backend está disponible, usarlo
+      if (!this.useMockData) {
+        const response = await fetch(`${this.baseURL}/api/analyze/text`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text,
+            useHuggingFace: this.huggingfaceEnabled,
+            useGemini: this.geminiEnabled,
+            useVerification: this.verificationEnabled,
+            weights: {
+              local: process.env.REACT_APP_LOCAL_WEIGHT || 0.2,
+              huggingface: process.env.REACT_APP_HUGGINGFACE_WEIGHT || 0.3,
+              gemini: process.env.REACT_APP_GEMINI_WEIGHT || 0.5
+            }
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error del backend: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return this.formatTextAnalysis(data);
       }
 
-      const response = await fetch(`${this.baseURL}/api/analyze/text`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.openaiKey}`,
-        },
-        body: JSON.stringify({
-          text,
-          model: "gpt-4",
-          max_tokens: 1000,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Error en análisis de texto");
-      }
-
-      const data = await response.json();
-      return this.formatTextAnalysis(data);
+      // Fallback a datos mock si el backend no está disponible
+      console.log('Usando datos mock para análisis de texto');
+      return this.getMockTextAnalysis();
     } catch (error) {
       console.error("Error en análisis de texto:", error);
+      console.log('Fallback a datos mock debido al error');
       return this.getMockTextAnalysis();
     }
   }
